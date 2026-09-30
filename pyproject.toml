@@ -1,0 +1,17 @@
+[project]
+name = "comfy-yanp"
+description = "A set of comfy nodes for comfy-ui."
+version = "1.0.0"
+license = "MIT"
+dependencies = ["comfyui-frontend-package>=1.43.18"]
+
+[project.urls]
+Repository    = "https://github.com/michele-bizzoca/comfy-yanp"
+Documentation = "https://github.com/michele-bizzoca/comfy-yanp/blob/main/README.md"
+"Bug Tracker" = "https://github.com/michele-bizzoca/comfy-yanp/issues"
+
+[tool.comfy]
+PublisherId = ""
+DisplayName = "Yet Another Node Package"
+Icon = "icon.png"
+requires-comfyui = ">=0.21.0"

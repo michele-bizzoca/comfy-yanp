@@ -1,0 +1,804 @@
+{
+  "nodes": [
+    {
+      "id": 282,
+      "type": "e3bb479c-0f8d-4a9c-af1e-284000feccb6",
+      "pos": [
+        1780.4612419946907,
+        -1108.1814203133272
+      ],
+      "size": [
+        227.75330124868788,
+        130
+      ],
+      "flags": {},
+      "order": 19,
+      "mode": 0,
+      "inputs": [
+        {
+          "label": "Input",
+          "name": "image",
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "label": "Upscaler",
+          "name": "model_name_1",
+          "type": "COMBO",
+          "widget": {
+            "name": "model_name_1"
+          },
+          "link": null
+        },
+        {
+          "label": "Scaler",
+          "name": "upscale_method",
+          "type": "COMBO",
+          "widget": {
+            "name": "upscale_method"
+          },
+          "link": null
+        },
+        {
+          "label": "AI",
+          "name": "value_1",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "value_1"
+          },
+          "link": null
+        },
+        {
+          "label": "Scale",
+          "name": "value_2",
+          "type": "FLOAT",
+          "widget": {
+            "name": "value_2"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "label": "Output",
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": null
+        }
+      ],
+      "properties": {
+        "previewExposures": []
+      },
+      "widgets_values": [
+        "4xHFA2k.pth",
+        "bicubic",
+        true,
+        0
+      ],
+      "widgets_values_named": {
+        "model_name_1": "4xHFA2k.pth",
+        "upscale_method": "bicubic",
+        "value_1": true,
+        "value_2": 0
+      }
+    }
+  ],
+  "groups": [],
+  "reroutes": [],
+  "links": [],
+  "definitions": {
+    "subgraphs": [
+      {
+        "id": "e3bb479c-0f8d-4a9c-af1e-284000feccb6",
+        "version": 1,
+        "state": {
+          "lastGroupId": 30,
+          "lastNodeId": 290,
+          "lastLinkId": 799,
+          "lastRerouteId": 2
+        },
+        "revision": 0,
+        "config": {},
+        "name": "Smart Scale",
+        "inputNode": {
+          "id": -10,
+          "bounding": [
+            1467.8293904518096,
+            -1269.1566169252633,
+            128,
+            148
+          ]
+        },
+        "outputNode": {
+          "id": -20,
+          "bounding": [
+            2616.9244821687616,
+            -1269.1566169252633,
+            128,
+            68
+          ]
+        },
+        "inputs": [
+          {
+            "id": "d3210cbc-4408-416b-b22e-4540fd590ef0",
+            "name": "image",
+            "type": "IMAGE",
+            "linkIds": [
+              771,
+              785
+            ],
+            "label": "Input",
+            "pos": [
+              1571.8293904518096,
+              -1245.1566169252633
+            ]
+          },
+          {
+            "id": "3c37c5c1-17b4-4fb9-8655-88d718b38a11",
+            "name": "model_name_1",
+            "type": "COMBO",
+            "linkIds": [
+              782
+            ],
+            "label": "Upscaler",
+            "pos": [
+              1571.8293904518096,
+              -1225.1566169252633
+            ]
+          },
+          {
+            "id": "e19a5a84-0126-4c87-a6ef-621ce4115088",
+            "name": "upscale_method",
+            "type": "COMBO",
+            "linkIds": [
+              797
+            ],
+            "label": "Scaler",
+            "pos": [
+              1571.8293904518096,
+              -1205.1566169252633
+            ]
+          },
+          {
+            "id": "984ed23b-d535-4895-8459-534e50c69ed4",
+            "name": "value_1",
+            "type": "BOOLEAN",
+            "linkIds": [
+              798
+            ],
+            "label": "AI",
+            "pos": [
+              1571.8293904518096,
+              -1185.1566169252633
+            ]
+          },
+          {
+            "id": "8d3fc38a-65b0-4848-875d-c13e2204037a",
+            "name": "value_2",
+            "type": "FLOAT",
+            "linkIds": [
+              799
+            ],
+            "label": "Scale",
+            "pos": [
+              1571.8293904518096,
+              -1165.1566169252633
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "id": "a5beec23-9461-427f-ac15-82106c1a527e",
+            "name": "IMAGE",
+            "type": "IMAGE",
+            "linkIds": [
+              781
+            ],
+            "label": "Output",
+            "pos": [
+              2640.9244821687616,
+              -1245.1566169252633
+            ]
+          }
+        ],
+        "widgets": [],
+        "nodes": [
+          {
+            "id": 279,
+            "type": "ImageUpscaleWithModel",
+            "pos": [
+              1924.1219135551778,
+              -1537.349611915428
+            ],
+            "size": [
+              234.2675107421875,
+              58.98259393865416
+            ],
+            "flags": {},
+            "order": 1,
+            "mode": 0,
+            "inputs": [
+              {
+                "localized_name": "upscale_model",
+                "name": "upscale_model",
+                "type": "UPSCALE_MODEL",
+                "link": 768
+              },
+              {
+                "localized_name": "image",
+                "name": "image",
+                "type": "IMAGE",
+                "link": 771
+              }
+            ],
+            "outputs": [
+              {
+                "localized_name": "IMAGE",
+                "name": "IMAGE",
+                "type": "IMAGE",
+                "links": [
+                  776
+                ]
+              }
+            ],
+            "title": "Upscale Image",
+            "properties": {
+              "Node name for S&R": "upscale"
+            }
+          },
+          {
+            "id": 278,
+            "type": "UpscaleModelLoader",
+            "pos": [
+              1627.9953503780127,
+              -1533.0051098943024
+            ],
+            "size": [
+              241.54500379253523,
+              59.03149089043828
+            ],
+            "flags": {},
+            "order": 0,
+            "mode": 0,
+            "inputs": [
+              {
+                "label": "model_name",
+                "localized_name": "model_name",
+                "name": "model_name",
+                "type": "COMBO",
+                "widget": {
+                  "name": "model_name"
+                },
+                "link": 782
+              }
+            ],
+            "outputs": [
+              {
+                "localized_name": "UPSCALE_MODEL",
+                "name": "UPSCALE_MODEL",
+                "type": "UPSCALE_MODEL",
+                "links": [
+                  768,
+                  770
+                ]
+              }
+            ],
+            "title": "Upscaler",
+            "properties": {
+              "Node name for S&R": "upscale_model"
+            },
+            "widgets_values": [
+              "4xHFA2k.pth"
+            ],
+            "widgets_values_named": {
+              "model_name": "4xHFA2k.pth"
+            }
+          },
+          {
+            "id": 281,
+            "type": "MpiUpscaleModelScale",
+            "pos": [
+              1635.0607499111802,
+              -1392.6053802311865
+            ],
+            "size": [
+              231.5,
+              78
+            ],
+            "flags": {},
+            "order": 2,
+            "mode": 0,
+            "inputs": [
+              {
+                "localized_name": "upscale_model",
+                "name": "upscale_model",
+                "type": "UPSCALE_MODEL",
+                "link": 770
+              },
+              {
+                "localized_name": "fallback_scale",
+                "name": "fallback_scale",
+                "type": "INT",
+                "widget": {
+                  "name": "fallback_scale"
+                },
+                "link": null
+              }
+            ],
+            "outputs": [
+              {
+                "localized_name": "scale_int",
+                "name": "scale_int",
+                "type": "INT",
+                "links": null
+              },
+              {
+                "localized_name": "scale_float",
+                "name": "scale_float",
+                "type": "FLOAT",
+                "links": [
+                  796
+                ]
+              }
+            ],
+            "title": "Model Scale",
+            "properties": {
+              "Node name for S&R": "MpiUpscaleModelScale"
+            },
+            "widgets_values": [
+              4
+            ],
+            "widgets_values_named": {
+              "fallback_scale": 4
+            }
+          },
+          {
+            "id": 283,
+            "type": "ComfySwitchNode",
+            "pos": [
+              2184.982805242839,
+              -1540.0190382806306
+            ],
+            "size": [
+              270,
+              78
+            ],
+            "flags": {},
+            "order": 3,
+            "mode": 0,
+            "inputs": [
+              {
+                "localized_name": "on_false",
+                "name": "on_false",
+                "shape": 7,
+                "type": "IMAGE",
+                "link": 785
+              },
+              {
+                "localized_name": "on_true",
+                "name": "on_true",
+                "shape": 7,
+                "type": "IMAGE",
+                "link": 776
+              },
+              {
+                "label": "switch",
+                "localized_name": "switch",
+                "name": "switch",
+                "type": "BOOLEAN",
+                "widget": {
+                  "name": "switch"
+                },
+                "link": 786
+              }
+            ],
+            "outputs": [
+              {
+                "localized_name": "output",
+                "name": "output",
+                "type": "IMAGE",
+                "links": [
+                  779
+                ]
+              }
+            ],
+            "title": "Choice",
+            "properties": {
+              "Node name for S&R": "ComfySwitchNode"
+            },
+            "widgets_values": [
+              false
+            ],
+            "widgets_values_named": {
+              "switch": false
+            }
+          },
+          {
+            "id": 285,
+            "type": "ComfyMathExpression",
+            "pos": [
+              1906.012958163371,
+              -1397.826451736484
+            ],
+            "size": [
+              247.65273013784895,
+              168
+            ],
+            "flags": {},
+            "order": 4,
+            "mode": 0,
+            "inputs": [
+              {
+                "localized_name": "a",
+                "name": "values.a",
+                "type": "FLOAT,INT,BOOLEAN",
+                "link": 792
+              },
+              {
+                "localized_name": "b",
+                "name": "values.b",
+                "shape": 7,
+                "type": "FLOAT,INT,BOOLEAN",
+                "link": 795
+              },
+              {
+                "localized_name": "c",
+                "name": "values.c",
+                "shape": 7,
+                "type": "FLOAT,INT,BOOLEAN",
+                "link": 796
+              },
+              {
+                "localized_name": "d",
+                "name": "values.d",
+                "shape": 7,
+                "type": "FLOAT,INT,BOOLEAN",
+                "link": null
+              },
+              {
+                "localized_name": "expression",
+                "name": "expression",
+                "type": "STRING",
+                "widget": {
+                  "name": "expression"
+                },
+                "link": null
+              }
+            ],
+            "outputs": [
+              {
+                "localized_name": "FLOAT",
+                "name": "FLOAT",
+                "type": "FLOAT",
+                "links": [
+                  780
+                ]
+              },
+              {
+                "localized_name": "INT",
+                "name": "INT",
+                "type": "INT",
+                "links": null
+              },
+              {
+                "localized_name": "BOOL",
+                "name": "BOOL",
+                "type": "BOOLEAN",
+                "links": null
+              }
+            ],
+            "title": "Internal Scale Factor",
+            "properties": {
+              "Node name for S&R": "ComfyMathExpression"
+            },
+            "widgets_values": [
+              "(b if b > 0 else c) / (c if a else 1)"
+            ],
+            "widgets_values_named": {
+              "expression": "(b if b > 0 else c) / (c if a else 1)"
+            }
+          },
+          {
+            "id": 286,
+            "type": "ImageScaleBy",
+            "pos": [
+              2182.2088449477096,
+              -1385.0557937370597
+            ],
+            "size": [
+              275.51772167681065,
+              82
+            ],
+            "flags": {},
+            "order": 5,
+            "mode": 0,
+            "inputs": [
+              {
+                "localized_name": "image",
+                "name": "image",
+                "type": "IMAGE",
+                "link": 779
+              },
+              {
+                "label": "Scaler",
+                "localized_name": "upscale_method",
+                "name": "upscale_method",
+                "type": "COMBO",
+                "widget": {
+                  "name": "upscale_method"
+                },
+                "link": 797
+              },
+              {
+                "localized_name": "scale_by",
+                "name": "scale_by",
+                "type": "FLOAT",
+                "widget": {
+                  "name": "scale_by"
+                },
+                "link": 780
+              }
+            ],
+            "outputs": [
+              {
+                "localized_name": "IMAGE",
+                "name": "IMAGE",
+                "type": "IMAGE",
+                "links": [
+                  781
+                ]
+              }
+            ],
+            "title": "Scale Image",
+            "properties": {
+              "Node name for S&R": "ImageScaleBy"
+            },
+            "widgets_values": [
+              "bicubic",
+              0.25
+            ],
+            "widgets_values_named": {
+              "upscale_method": "bicubic",
+              "scale_by": 0.25
+            }
+          },
+          {
+            "id": 289,
+            "type": "PrimitiveBoolean",
+            "pos": [
+              1902.5424045528725,
+              -1657.166189918044
+            ],
+            "size": [
+              270,
+              58
+            ],
+            "flags": {},
+            "order": 6,
+            "mode": 0,
+            "inputs": [
+              {
+                "label": "value",
+                "localized_name": "value",
+                "name": "value",
+                "type": "BOOLEAN",
+                "widget": {
+                  "name": "value"
+                },
+                "link": 798
+              }
+            ],
+            "outputs": [
+              {
+                "localized_name": "BOOLEAN",
+                "name": "BOOLEAN",
+                "type": "BOOLEAN",
+                "links": [
+                  786,
+                  792
+                ]
+              }
+            ],
+            "title": "Enable Upscaler",
+            "properties": {
+              "Node name for S&R": "PrimitiveBoolean"
+            },
+            "widgets_values": [
+              true
+            ],
+            "widgets_values_named": {
+              "value": true
+            }
+          },
+          {
+            "id": 290,
+            "type": "PrimitiveFloat",
+            "pos": [
+              1616.709030529435,
+              -1655.9995334239034
+            ],
+            "size": [
+              270,
+              58
+            ],
+            "flags": {},
+            "order": 7,
+            "mode": 0,
+            "inputs": [
+              {
+                "localized_name": "value",
+                "name": "value",
+                "type": "FLOAT",
+                "widget": {
+                  "name": "value"
+                },
+                "link": 799
+              }
+            ],
+            "outputs": [
+              {
+                "localized_name": "FLOAT",
+                "name": "FLOAT",
+                "type": "FLOAT",
+                "links": [
+                  795
+                ]
+              }
+            ],
+            "title": "Scale Factor",
+            "properties": {
+              "Node name for S&R": "PrimitiveFloat"
+            },
+            "widgets_values": [
+              0
+            ],
+            "widgets_values_named": {
+              "value": 0
+            }
+          }
+        ],
+        "groups": [],
+        "links": [
+          {
+            "id": 768,
+            "origin_id": 278,
+            "origin_slot": 0,
+            "target_id": 279,
+            "target_slot": 0,
+            "type": "UPSCALE_MODEL"
+          },
+          {
+            "id": 770,
+            "origin_id": 278,
+            "origin_slot": 0,
+            "target_id": 281,
+            "target_slot": 0,
+            "type": "UPSCALE_MODEL"
+          },
+          {
+            "id": 771,
+            "origin_id": -10,
+            "origin_slot": 0,
+            "target_id": 279,
+            "target_slot": 1,
+            "type": "IMAGE"
+          },
+          {
+            "id": 776,
+            "origin_id": 279,
+            "origin_slot": 0,
+            "target_id": 283,
+            "target_slot": 1,
+            "type": "IMAGE"
+          },
+          {
+            "id": 779,
+            "origin_id": 283,
+            "origin_slot": 0,
+            "target_id": 286,
+            "target_slot": 0,
+            "type": "IMAGE"
+          },
+          {
+            "id": 780,
+            "origin_id": 285,
+            "origin_slot": 0,
+            "target_id": 286,
+            "target_slot": 2,
+            "type": "FLOAT"
+          },
+          {
+            "id": 781,
+            "origin_id": 286,
+            "origin_slot": 0,
+            "target_id": -20,
+            "target_slot": 0,
+            "type": "IMAGE"
+          },
+          {
+            "id": 782,
+            "origin_id": -10,
+            "origin_slot": 1,
+            "target_id": 278,
+            "target_slot": 0,
+            "type": "COMBO"
+          },
+          {
+            "id": 785,
+            "origin_id": -10,
+            "origin_slot": 0,
+            "target_id": 283,
+            "target_slot": 0,
+            "type": "IMAGE"
+          },
+          {
+            "id": 786,
+            "origin_id": 289,
+            "origin_slot": 0,
+            "target_id": 283,
+            "target_slot": 2,
+            "type": "BOOLEAN"
+          },
+          {
+            "id": 797,
+            "origin_id": -10,
+            "origin_slot": 2,
+            "target_id": 286,
+            "target_slot": 1,
+            "type": "COMBO"
+          },
+          {
+            "id": 798,
+            "origin_id": -10,
+            "origin_slot": 3,
+            "target_id": 289,
+            "target_slot": 0,
+            "type": "BOOLEAN"
+          },
+          {
+            "id": 799,
+            "origin_id": -10,
+            "origin_slot": 4,
+            "target_id": 290,
+            "target_slot": 0,
+            "type": "FLOAT"
+          },
+          {
+            "id": 792,
+            "origin_id": 289,
+            "origin_slot": 0,
+            "target_id": 285,
+            "target_slot": 0,
+            "type": "BOOLEAN"
+          },
+          {
+            "id": 795,
+            "origin_id": 290,
+            "origin_slot": 0,
+            "target_id": 285,
+            "target_slot": 1,
+            "type": "FLOAT"
+          },
+          {
+            "id": 796,
+            "origin_id": 281,
+            "origin_slot": 1,
+            "target_id": 285,
+            "target_slot": 2,
+            "type": "FLOAT"
+          }
+        ],
+        "extra": {
+          "pixaromaGroups": []
+        }
+      }
+    ]
+  },
+  "id": "498f610a-0afd-4bd6-803a-bd62b6d9d013",
+  "revision": 0,
+  "last_node_id": 282,
+  "last_link_id": 0,
+  "version": 0.4,
+  "config": {},
+  "extra": {}
+}
