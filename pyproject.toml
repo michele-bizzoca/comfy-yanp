@@ -1,7 +1,7 @@
 [project]
 name = "comfy-yanp"
 description = "A set of comfy nodes for comfy-ui."
-version = "1.0.0"
+version = "1.0"
 license = "MIT"
 dependencies = ["comfyui-frontend-package>=1.43.18"]
 
