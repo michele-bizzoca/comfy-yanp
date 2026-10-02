@@ -10,48 +10,57 @@ app.registerExtension({
         const onExecuted = nodeType.prototype.onExecuted;
 
         nodeType.prototype.onNodeCreated = function () {
-            const r = onNodeCreated?.apply(this, arguments);
+            const result = onNodeCreated?.apply(this, arguments);
 
-            this._yanpSeedPreview = "—";
-            this.setSize?.([200, 60]);
+            const seedWidget = this.widgets?.find(
+                widget => widget.name === "Seed"
+            );
 
-            return r;
+            if (seedWidget) {
+                // Preview only: do not persist this display value into the
+                // workflow. It will be repopulated after execution.
+                seedWidget.serialize = false;
+                seedWidget.options ??= {};
+                seedWidget.options.serialize = false;
+            }
+
+            this.setSize?.([250, 60]);
+
+            return result;
         };
 
         nodeType.prototype.onExecuted = function (message) {
-            const r = onExecuted?.apply(this, arguments);
+            const result = onExecuted?.apply(this, arguments);
 
-            const value = message?.seed?.[0];
+            const seedWidget = this.widgets?.find(
+                widget => widget.name === "Seed"
+            );
 
-            if (value !== undefined) {
-                this._yanpSeedPreview = String(value);
+            if (!seedWidget) return result;
+
+            // Standard ComfyUI UI-output shape:
+            // {"ui": {"text": ("123",)}} -> message.text == ["123"]
+            let value = message?.text;
+
+            if (Array.isArray(value)) {
+                value = value[0];
+            }
+
+            // Fallback for unusual wrappers while keeping the standard path
+            // above as the primary one.
+            if (value === undefined || value === null) {
+                value = message?.seed;
+                if (Array.isArray(value)) value = value[0];
+            }
+
+            if (value !== undefined && value !== null) {
+                seedWidget.value = String(value);
+
                 this.setDirtyCanvas?.(true, true);
                 app.graph?.setDirtyCanvas?.(true, true);
             }
 
-            return r;
-        };
-
-        const onDrawForeground = nodeType.prototype.onDrawForeground;
-
-        nodeType.prototype.onDrawForeground = function (ctx) {
-            onDrawForeground?.apply(this, arguments);
-
-            if (this.flags?.collapsed) return;
-
-            ctx.save();
-            ctx.font = "12px sans-serif";
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-
-            const y = this.size[1] - 10;
-            ctx.fillText(
-                this._yanpSeedPreview ?? "—",
-                this.size[0] / 2,
-                y
-            );
-
-            ctx.restore();
+            return result;
         };
     },
 });
