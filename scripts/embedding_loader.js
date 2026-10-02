@@ -2,65 +2,79 @@ import { app } from "../../scripts/app.js";
 import { api } from "../../scripts/api.js";
 
 app.registerExtension({
-    name: "yanp.embedding.loader",
+    name: "yanp.embeddingLoader",
 
     async beforeRegisterNodeDef(nodeType, nodeData) {
         if (nodeData.name !== "EmbeddingLoader") return;
 
         const onNodeCreated = nodeType.prototype.onNodeCreated;
+        const onConfigure = nodeType.prototype.onConfigure;
+        const onSerialize = nodeType.prototype.onSerialize;
 
         nodeType.prototype.onNodeCreated = function () {
-            const r = onNodeCreated?.apply(this, arguments);
+            const result = onNodeCreated?.apply(this, arguments);
 
-            // Hidden backend state used to serialize the dynamic rows.
-            const dataWidget = this.widgets?.find(w => w.name === "embedding_data");
+            const dataWidget =
+                this.widgets?.find(widget => widget.name === "embeddingData");
+
+            // Hide backend-only serialized data.
             if (dataWidget) {
                 dataWidget.type = "hidden";
                 dataWidget.computeSize = () => [0, -4];
             }
 
             this._yanpEmbeddingRows = [];
+            this._yanpEmbeddingNames = [];
+            this._yanpEmbeddingDataWidget = dataWidget;
 
             const roundStrength = (value) => {
-                const n = Number(value ?? 1.0);
-                return Number.isFinite(n) ? parseFloat(n.toFixed(2)) : 1.0;
+                const number = Number(value ?? 1.0);
+                return Number.isFinite(number) ? parseFloat(number.toFixed(2)) : 1.0;
             };
 
-            const sync = () => {
-                if (!dataWidget) return;
+            const getState = () =>
+                this._yanpEmbeddingRows.map(row => ({
+                    enabled: !!row.Enable.value,
+                    name: row.Embedding.value || "",
+                    strength: roundStrength(row.Strength.value),
+                }));
 
-                dataWidget.value = JSON.stringify(
-                    this._yanpEmbeddingRows.map(row => ({
-                        enabled: !!row.enable.value,
-                        name: row.embedding.value || "",
-                        strength: roundStrength(row.strength.value),
-                    }))
-                );
+            const sync = () => {
+                const state = getState();
+                const serialized = JSON.stringify(state);
+
+                if (this._yanpEmbeddingDataWidget) {
+                    this._yanpEmbeddingDataWidget.value = serialized;
+                }
+
+                this.properties ??= {};
+                this.properties.embeddingLoaderState = state;
 
                 this.setDirtyCanvas?.(true, true);
                 app.graph?.setDirtyCanvas?.(true, true);
             };
 
             const renumberRows = () => {
-                this._yanpEmbeddingRows.forEach((row, i) => {
-                    const n = i + 1;
-                    row.enable.name = `enable ${n}`;
-                    row.embedding.name = `embedding ${n}`;
-                    row.strength.name = `strength ${n}`;
-                    row.remove.name = `− Remove ${n}`;
+                this._yanpEmbeddingRows.forEach((row, index) => {
+                    const number = index + 1;
+                    row.Enable.name = `Enable ${number}`;
+                    row.Embedding.name = `Embedding ${number}`;
+                    row.Strength.name = `Strength ${number}`;
+                    row.Remove.name = `− Remove ${number}`;
                 });
             };
 
             const removeRow = (row) => {
                 const doomed = new Set([
-                    row.enable,
-                    row.embedding,
-                    row.strength,
-                    row.remove,
+                    row.Enable,
+                    row.Embedding,
+                    row.Strength,
+                    row.Remove,
                 ]);
 
-                this.widgets = (this.widgets || []).filter(w => !doomed.has(w));
-                this._yanpEmbeddingRows = this._yanpEmbeddingRows.filter(x => x !== row);
+                this.widgets = (this.widgets || []).filter(widget => !doomed.has(widget));
+                this._yanpEmbeddingRows = this._yanpEmbeddingRows.filter(candidate => candidate !== row);
+
                 renumberRows();
                 sync();
 
@@ -70,47 +84,50 @@ app.registerExtension({
                 });
             };
 
-            const addRow = (saved = null) => {
+            const addRow = (saved = null, doSync = true) => {
                 const index = this._yanpEmbeddingRows.length + 1;
                 const row = {};
 
-                row.enable = this.addWidget(
+                row.Enable = this.addWidget(
                     "toggle",
-                    `enable ${index}`,
+                    `Enable ${index}`,
                     saved?.enabled ?? true,
-                    () => sync()
+                    () => sync(),
+                    {
+                        on: "On",
+                        off: "Off",
+                    }
                 );
 
-                row.embedding = this.addWidget(
+                row.Embedding = this.addWidget(
                     "combo",
-                    `embedding ${index}`,
+                    `Embedding ${index}`,
                     saved?.name ?? "",
                     () => sync(),
                     { values: () => this._yanpEmbeddingNames || [] }
                 );
 
-                row.strength = this.addWidget(
+                row.Strength = this.addWidget(
                     "number",
-                    `strength ${index}`,
+                    `Strength ${index}`,
                     roundStrength(saved?.strength ?? 1.0),
                     (value) => {
                         const rounded = roundStrength(value);
-                        if (row.strength.value !== rounded) {
-                            row.strength.value = rounded;
+                        if (row.Strength.value !== rounded) {
+                            row.Strength.value = rounded;
                         }
                         sync();
                     },
                     {
                         min: 0.0,
                         max: 2.0,
-                        // Current frontend uses step2 directly. Legacy step is /10.
                         step2: 0.05,
                         step: 0.5,
                         precision: 2,
                     }
                 );
 
-                row.remove = this.addWidget(
+                row.Remove = this.addWidget(
                     "button",
                     `− Remove ${index}`,
                     null,
@@ -118,14 +135,39 @@ app.registerExtension({
                 );
 
                 this._yanpEmbeddingRows.push(row);
-                sync();
+
+                if (doSync) sync();
                 app.graph?.setDirtyCanvas?.(true, true);
             };
 
+            const clearRows = () => {
+                const doomed = new Set();
+                for (const row of this._yanpEmbeddingRows) {
+                    doomed.add(row.Enable);
+                    doomed.add(row.Embedding);
+                    doomed.add(row.Strength);
+                    doomed.add(row.Remove);
+                }
+                this.widgets = (this.widgets || []).filter(widget => !doomed.has(widget));
+                this._yanpEmbeddingRows = [];
+            };
+
+            const restoreState = (state) => {
+                if (!Array.isArray(state)) return;
+
+                clearRows();
+                state.forEach(row => addRow(row, false));
+                sync();
+            };
+
+            this._yanpRestoreEmbeddingState = restoreState;
+            this._yanpGetEmbeddingState = getState;
+
+            // Keep this button after Position and before the dynamic rows.
             this.addWidget("button", "+ Add Embedding", null, () => addRow());
 
             api.fetchApi("/yanp/embedding_loader/embeddings")
-                .then(r => r.json())
+                .then(response => response.json())
                 .then(names => {
                     this._yanpEmbeddingNames = Array.isArray(names) ? names : [];
                     this.setDirtyCanvas?.(true, true);
@@ -134,15 +176,31 @@ app.registerExtension({
                     this._yanpEmbeddingNames = [];
                 });
 
-            // Restore rows saved in the workflow.
-            try {
-                const saved = JSON.parse(dataWidget?.value || "[]");
-                if (Array.isArray(saved)) saved.forEach(addRow);
-            } catch {
-                // Ignore malformed state from an older workflow.
-            }
+            return result;
+        };
 
-            return r;
+        nodeType.prototype.onConfigure = function (info) {
+            const result = onConfigure?.apply(this, arguments);
+
+            // Restore only state written by this version of the node.
+            requestAnimationFrame(() => {
+                const state = info?.properties?.embeddingLoaderState;
+
+                if (Array.isArray(state)) {
+                    this._yanpRestoreEmbeddingState?.(state);
+                }
+            });
+
+            return result;
+        };
+
+        nodeType.prototype.onSerialize = function (data) {
+            const result = onSerialize?.apply(this, arguments);
+
+            data.properties ??= {};
+            data.properties.embeddingLoaderState = this._yanpGetEmbeddingState?.() ?? [];
+
+            return result;
         };
     },
 });

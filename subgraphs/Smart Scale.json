@@ -80,8 +80,7 @@
         "upscale_method": "bicubic",
         "value_1": true,
         "value_2": 0
-      },
-      "title": "Smart Scale"
+      }
     }
   ],
   "groups": [],
@@ -244,8 +243,7 @@
             ],
             "title": "Upscale Image",
             "properties": {
-              "Node name for S&R": "upscale",
-              "cnr_id": "comfy-core"
+              "Node name for S&R": "upscale"
             }
           },
           {
@@ -287,8 +285,7 @@
             ],
             "title": "Upscaler",
             "properties": {
-              "Node name for S&R": "upscale_model",
-              "cnr_id": "comfy-core"
+              "Node name for S&R": "upscale_model"
             },
             "widgets_values": [
               "4xHFA2k.pth"
@@ -346,8 +343,7 @@
             ],
             "title": "Model Scale",
             "properties": {
-              "Node name for S&R": "MpiUpscaleModelScale",
-              "cnr_id": "ComfyUi-MpiNodes"
+              "Node name for S&R": "MpiUpscaleModelScale"
             },
             "widgets_values": [
               4
@@ -408,8 +404,7 @@
             ],
             "title": "Choice",
             "properties": {
-              "Node name for S&R": "ComfySwitchNode",
-              "cnr_id": "comfy-core"
+              "Node name for S&R": "ComfySwitchNode"
             },
             "widgets_values": [
               false
@@ -494,8 +489,7 @@
             ],
             "title": "Internal Scale Factor",
             "properties": {
-              "Node name for S&R": "ComfyMathExpression",
-              "cnr_id": "comfy-core"
+              "Node name for S&R": "ComfyMathExpression"
             },
             "widgets_values": [
               "(b if b > 0 else c) / (c if a else 1)"
@@ -557,8 +551,7 @@
             ],
             "title": "Scale Image",
             "properties": {
-              "Node name for S&R": "ImageScaleBy",
-              "cnr_id": "comfy-core"
+              "Node name for S&R": "ImageScaleBy"
             },
             "widgets_values": [
               "bicubic",
@@ -608,8 +601,7 @@
             ],
             "title": "Enable Upscaler",
             "properties": {
-              "Node name for S&R": "PrimitiveBoolean",
-              "cnr_id": "comfy-core"
+              "Node name for S&R": "PrimitiveBoolean"
             },
             "widgets_values": [
               true
@@ -655,8 +647,7 @@
             ],
             "title": "Scale Factor",
             "properties": {
-              "Node name for S&R": "PrimitiveFloat",
-              "cnr_id": "comfy-core"
+              "Node name for S&R": "PrimitiveFloat"
             },
             "widgets_values": [
               0
@@ -799,7 +790,8 @@
         ],
         "extra": {
           "pixaromaGroups": []
-        }
+        },
+        "description": "Flexible combination of AI and traditional scaling (by a factor)."
       }
     ]
   },

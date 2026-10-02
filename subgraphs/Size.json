@@ -1,0 +1,295 @@
+{
+  "nodes": [
+    {
+      "id": 499,
+      "type": "a5fb1727-4dfc-4323-a05b-839c1cb7ca42",
+      "pos": [
+        -6527.338505427801,
+        -575.4820872442706
+      ],
+      "size": [
+        210,
+        102
+      ],
+      "flags": {},
+      "order": 20,
+      "mode": 0,
+      "inputs": [
+        {
+          "label": "Width",
+          "name": "value",
+          "type": "INT",
+          "widget": {
+            "name": "value"
+          },
+          "link": null
+        },
+        {
+          "label": "Height",
+          "name": "value_1",
+          "type": "INT",
+          "widget": {
+            "name": "value_1"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "label": "width",
+          "name": "INT",
+          "type": "INT",
+          "links": null
+        },
+        {
+          "label": "height",
+          "name": "INT_1",
+          "type": "INT",
+          "links": null
+        }
+      ],
+      "title": "Size",
+      "properties": {
+        "previewExposures": []
+      },
+      "widgets_values": [
+        0,
+        0
+      ],
+      "widgets_values_named": {
+        "value": 0,
+        "value_1": 0
+      }
+    }
+  ],
+  "groups": [],
+  "reroutes": [],
+  "links": [],
+  "definitions": {
+    "subgraphs": [
+      {
+        "id": "a5fb1727-4dfc-4323-a05b-839c1cb7ca42",
+        "version": 1,
+        "state": {
+          "lastGroupId": 34,
+          "lastNodeId": 500,
+          "lastLinkId": 1326,
+          "lastRerouteId": 3
+        },
+        "revision": 0,
+        "config": {},
+        "name": "Size",
+        "inputNode": {
+          "id": -10,
+          "bounding": [
+            -6315.2458002635785,
+            -524.8123868859155,
+            128,
+            48
+          ]
+        },
+        "outputNode": {
+          "id": -20,
+          "bounding": [
+            -5857.2458002635785,
+            -524.8123868859155,
+            128,
+            88
+          ]
+        },
+        "inputs": [
+          {
+            "id": "fb287858-917a-4c7d-aa8b-44578c0b94a2",
+            "name": "value",
+            "type": "INT",
+            "linkIds": [
+              1325
+            ],
+            "label": "Width",
+            "pos": [
+              0,
+              0
+            ]
+          },
+          {
+            "id": "de9f2362-37e8-4a18-9d2e-f9e2e9d8ca1d",
+            "name": "value_1",
+            "type": "INT",
+            "linkIds": [
+              1326
+            ],
+            "label": "Height",
+            "pos": [
+              0,
+              0
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "id": "0b903f6b-3446-4320-9ca7-740b18a423cd",
+            "name": "INT",
+            "type": "INT",
+            "linkIds": [
+              1323
+            ],
+            "label": "width",
+            "pos": [
+              -5833.2458002635785,
+              -500.81238688591554
+            ]
+          },
+          {
+            "id": "8c24e50d-31b2-4331-8ca0-9748b2d035b1",
+            "name": "INT_1",
+            "type": "INT",
+            "linkIds": [
+              1324
+            ],
+            "label": "height",
+            "pos": [
+              -5833.2458002635785,
+              -480.81238688591554
+            ]
+          }
+        ],
+        "widgets": [],
+        "nodes": [
+          {
+            "id": 498,
+            "type": "PrimitiveInt",
+            "pos": [
+              -6127.2458002635785,
+              -526.8123868859155
+            ],
+            "size": [
+              210,
+              82
+            ],
+            "flags": {},
+            "order": 0,
+            "mode": 0,
+            "inputs": [
+              {
+                "label": "Width",
+                "localized_name": "value",
+                "name": "value",
+                "type": "INT",
+                "widget": {
+                  "name": "value"
+                },
+                "link": 1325
+              }
+            ],
+            "outputs": [
+              {
+                "localized_name": "INT",
+                "name": "INT",
+                "type": "INT",
+                "links": [
+                  1323
+                ]
+              }
+            ],
+            "properties": {
+              "Node name for S&R": "PrimitiveInt"
+            },
+            "widgets_values": [
+              0,
+              "fixed"
+            ],
+            "widgets_values_named": {
+              "value": 0,
+              "fixed": "fixed"
+            }
+          },
+          {
+            "id": 500,
+            "type": "PrimitiveInt",
+            "pos": [
+              -6120.400781813395,
+              -389.2527741397562
+            ],
+            "size": [
+              210,
+              82
+            ],
+            "flags": {},
+            "order": 0,
+            "mode": 0,
+            "inputs": [
+              {
+                "label": "Height",
+                "localized_name": "value",
+                "name": "value",
+                "type": "INT",
+                "widget": {
+                  "name": "value"
+                },
+                "link": 1326
+              }
+            ],
+            "outputs": [
+              {
+                "localized_name": "INT",
+                "name": "INT",
+                "type": "INT",
+                "links": [
+                  1324
+                ]
+              }
+            ],
+            "properties": {
+              "Node name for S&R": "PrimitiveInt"
+            },
+            "widgets_values": [
+              0,
+              "fixed"
+            ],
+            "widgets_values_named": {
+              "value": 0,
+              "fixed": "fixed"
+            }
+          }
+        ],
+        "groups": [],
+        "links": [
+          {
+            "id": 1323,
+            "origin_id": 498,
+            "origin_slot": 0,
+            "target_id": -20,
+            "target_slot": 0,
+            "type": "INT"
+          },
+          {
+            "id": 1324,
+            "origin_id": 500,
+            "origin_slot": 0,
+            "target_id": -20,
+            "target_slot": 1,
+            "type": "INT"
+          },
+          {
+            "id": 1325,
+            "origin_id": -10,
+            "origin_slot": 0,
+            "target_id": 498,
+            "target_slot": 0,
+            "type": "INT"
+          },
+          {
+            "id": 1326,
+            "origin_id": -10,
+            "origin_slot": 1,
+            "target_id": 500,
+            "target_slot": 0,
+            "type": "INT"
+          }
+        ],
+        "extra": {},
+        "description": "Width and height."
+      }
+    ]
+  }
+}

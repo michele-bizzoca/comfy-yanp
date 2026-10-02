@@ -9,7 +9,6 @@ from server import PromptServer
 @PromptServer.instance.routes.get("/yanp/embedding_loader/embeddings")
 async def yanp_embedding_loader_embeddings(request):
     names = folder_paths.get_filename_list("embeddings")
-    # Return paths without the extension, matching ComfyUI textual-inversion syntax.
     cleaned = [os.path.splitext(name)[0].replace("\\", "/") for name in names]
     return web.json_response(cleaned)
 
@@ -19,10 +18,11 @@ class EmbeddingLoader:
     def INPUT_TYPES(cls):
         return {
             "required": {
+                "Position": (["Before", "After"], {"default": "Before"}),
                 "prompt": ("STRING", {"forceInput": True}),
             },
             "optional": {
-                "embedding_data": ("STRING", {"default": "[]"}),
+                "embeddingData": ("STRING", {"default": "[]"}),
             },
         }
 
@@ -36,12 +36,23 @@ class EmbeddingLoader:
         return True
 
     @classmethod
-    def IS_CHANGED(cls, prompt="", embedding_data="[]", **kwargs):
-        return (prompt, embedding_data)
+    def IS_CHANGED(
+        cls,
+        Position="Before",
+        prompt="",
+        embeddingData="[]",
+        **kwargs,
+    ):
+        return (Position, prompt, embeddingData)
 
-    def build(self, prompt="", embedding_data="[]"):
+    def build(
+        self,
+        Position="Before",
+        prompt="",
+        embeddingData="[]",
+    ):
         try:
-            rows = json.loads(embedding_data) if embedding_data else []
+            rows = json.loads(embeddingData) if embeddingData else []
         except Exception:
             rows = []
 
@@ -54,7 +65,6 @@ class EmbeddingLoader:
             if not name:
                 continue
 
-            # Be tolerant of states created by older versions that stored extensions.
             for ext in (".safetensors", ".pt", ".pth", ".bin"):
                 if name.lower().endswith(ext):
                     name = name[:-len(ext)]
@@ -68,7 +78,13 @@ class EmbeddingLoader:
             selected.append(f"(embedding:{name}:{strength:g})")
 
         prompt = str(prompt or "").strip()
-        parts = selected + ([prompt] if prompt else [])
+        embeddings = ", ".join(selected)
+
+        if Position == "After":
+            parts = ([prompt] if prompt else []) + ([embeddings] if embeddings else [])
+        else:
+            parts = ([embeddings] if embeddings else []) + ([prompt] if prompt else [])
+
         return (", ".join(parts),)
 
 
