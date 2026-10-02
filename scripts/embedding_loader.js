@@ -14,18 +14,38 @@ app.registerExtension({
         nodeType.prototype.onNodeCreated = function () {
             const result = onNodeCreated?.apply(this, arguments);
 
-            const dataWidget =
-                this.widgets?.find(widget => widget.name === "embeddingData");
+            const hideEmbeddingData = () => {
+                const dataWidget = this.widgets?.find(
+                    widget => widget.name === "embeddingData"
+                );
 
-            // Hide backend-only serialized data.
-            if (dataWidget) {
-                dataWidget.type = "hidden";
+                if (!dataWidget) return;
+
+                // Keep the backend value serializable, but hide its UI on both
+                // legacy canvas widgets and the current Vue/widget renderer.
+                dataWidget.hidden = true;
+                dataWidget.options = dataWidget.options || {};
+                dataWidget.options.hidden = true;
                 dataWidget.computeSize = () => [0, -4];
-            }
+
+                for (const key of ["element", "inputEl"]) {
+                    const element = dataWidget[key];
+                    if (element?.style) element.style.display = "none";
+                }
+
+                this._yanpEmbeddingDataWidget = dataWidget;
+            };
+
+            hideEmbeddingData();
+
+            requestAnimationFrame(() => {
+                hideEmbeddingData();
+                this.setDirtyCanvas?.(true, true);
+                app.graph?.setDirtyCanvas?.(true, true);
+            });
 
             this._yanpEmbeddingRows = [];
             this._yanpEmbeddingNames = [];
-            this._yanpEmbeddingDataWidget = dataWidget;
 
             const roundStrength = (value) => {
                 const number = Number(value ?? 1.0);
