@@ -11,8 +11,8 @@ app.registerExtension({
         nodeType.prototype.onNodeCreated = function () {
             const r = onNodeCreated?.apply(this, arguments);
 
-            const current = this.size || [140, 60];
-            this.setSize?.([94, current[1]]);
+            const current = this.size || [200, 60];
+            this.setSize?.([200, 60]);
 
             const connected = this.widgets?.find(w => w.name === "Connected");
             if (connected) {

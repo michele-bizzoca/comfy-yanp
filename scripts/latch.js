@@ -1,10 +1,10 @@
 import { app } from "../../scripts/app.js";
 
 app.registerExtension({
-    name: "yanp.identity.ui",
+    name: "yanp.latch.ui",
 
     async beforeRegisterNodeDef(nodeType, nodeData) {
-        if (nodeData.name !== "YANPIdentity") return;
+        if (nodeData.name !== "YANPMemoryLatch") return;
 
         const onNodeCreated = nodeType.prototype.onNodeCreated;
 
