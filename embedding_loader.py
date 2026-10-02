@@ -23,13 +23,15 @@ class EmbeddingLoader:
             },
             "optional": {
                 "embeddingData": ("STRING", {"default": "[]"}),
+                # Backward compatibility with workflows made with the old version.
+                "embedding_data": ("STRING", {"default": ""}),
             },
         }
 
     RETURN_TYPES = ("STRING",)
     RETURN_NAMES = ("prompt",)
     FUNCTION = "build"
-    CATEGORY = "yanp/prompt"
+    CATEGORY = "YANP/prompt"
 
     @classmethod
     def VALIDATE_INPUTS(cls, **kwargs):
@@ -41,18 +43,23 @@ class EmbeddingLoader:
         Position="Before",
         prompt="",
         embeddingData="[]",
+        embedding_data="",
         **kwargs,
     ):
-        return (Position, prompt, embeddingData)
+        effectiveData = embeddingData if embeddingData not in (None, "", "[]") else embedding_data
+        return (Position, prompt, effectiveData)
 
     def build(
         self,
         Position="Before",
         prompt="",
         embeddingData="[]",
+        embedding_data="",
     ):
+        effectiveData = embeddingData if embeddingData not in (None, "", "[]") else embedding_data
+
         try:
-            rows = json.loads(embeddingData) if embeddingData else []
+            rows = json.loads(effectiveData) if effectiveData else []
         except Exception:
             rows = []
 

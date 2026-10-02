@@ -4,28 +4,6 @@ from comfy_execution.graph_utils import ExecutionBlocker
 ANY = "*"
 
 
-class YANPIdentity:
-    @classmethod
-    def INPUT_TYPES(cls):
-        return {
-            "required": {
-                "input": (ANY,),
-            }
-        }
-
-    RETURN_TYPES = (ANY,)
-    RETURN_NAMES = ("output",)
-    FUNCTION = "passthrough"
-    CATEGORY = "yanp/utils"
-
-    @classmethod
-    def VALIDATE_INPUTS(cls, **kwargs):
-        return True
-
-    def passthrough(self, input):
-        return (input,)
-
-
 class YANPSimpleSwitch:
     @classmethod
     def INPUT_TYPES(cls):
@@ -38,8 +16,6 @@ class YANPSimpleSwitch:
                 }),
             },
             "optional": {
-                # Lazy means the upstream branch is requested only while connected.
-                # Optional allows the socket to remain physically disconnected.
                 "input": (ANY, {"lazy": True}),
             },
         }
@@ -47,7 +23,7 @@ class YANPSimpleSwitch:
     RETURN_TYPES = (ANY,)
     RETURN_NAMES = ("output",)
     FUNCTION = "switch"
-    CATEGORY = "yanp/utils"
+    CATEGORY = "YANP/utils"
 
     @classmethod
     def VALIDATE_INPUTS(cls, **kwargs):
@@ -61,17 +37,14 @@ class YANPSimpleSwitch:
 
     def switch(self, Connected, input=None):
         if not Connected:
-            # Silently block every downstream consumer, like a disconnected branch.
             return (ExecutionBlocker(None),)
         return (input,)
 
 
 NODE_CLASS_MAPPINGS = {
-    "YANPIdentity": YANPIdentity,
     "YANPSimpleSwitch": YANPSimpleSwitch,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "YANPIdentity": "Identity",
     "YANPSimpleSwitch": "Simple Switch",
 }
