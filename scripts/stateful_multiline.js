@@ -1,10 +1,10 @@
 import { app } from "../../scripts/app.js";
 
 app.registerExtension({
-    name: "yanp.multiline_with_memory",
+    name: "yanp.stateful_multiline",
 
     async beforeRegisterNodeDef(nodeType, nodeData) {
-        if (nodeData.name !== "YANPMultilineWithMemory") return;
+        if (nodeData.name !== "YANPStatefulMultiline") return;
 
         const onNodeCreated = nodeType.prototype.onNodeCreated;
         const onSerialize = nodeType.prototype.onSerialize;

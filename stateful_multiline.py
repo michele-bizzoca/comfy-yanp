@@ -1,4 +1,4 @@
-class MultilineWithMemory:
+class StatefulMultiline:
     @classmethod
     def INPUT_TYPES(cls):
         return {
@@ -24,9 +24,9 @@ class MultilineWithMemory:
 
 
 NODE_CLASS_MAPPINGS = {
-    "YANPMultilineWithMemory": MultilineWithMemory,
+    "YANPStatefulMultiline": StatefulMultiline,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "YANPMultilineWithMemory": "Multiline with Memory",
+    "YANPStatefulMultiline": "Stateful Multiline",
 }
