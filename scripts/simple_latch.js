@@ -1,7 +1,7 @@
 import { app } from "../../scripts/app.js";
 
 app.registerExtension({
-    name: "yanp.latch.ui",
+    name: "yanp.simple_latch.ui",
 
     async beforeRegisterNodeDef(nodeType, nodeData) {
         if (nodeData.name !== "YANPMemoryLatch") return;
