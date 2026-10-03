@@ -1,7 +1,7 @@
 import secrets
 
 
-_MEMORY = {}
+MAX_SEED = 2**63
 
 
 class SmartSeed:
@@ -9,23 +9,18 @@ class SmartSeed:
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "Stop": ("BOOLEAN", {
-                    "default": False,
+                "Random": ("BOOLEAN", {
+                    "default": True,
                     "label_on": "On",
                     "label_off": "Off",
                 }),
             },
             "optional": {
-                # Real backend widget: much more reliable with the current
-                # ComfyUI frontend than a widget created only from JavaScript.
                 "Seed": ("STRING", {
                     "default": "",
                     "multiline": False,
                     "dynamicPrompts": False,
                 }),
-            },
-            "hidden": {
-                "unique_id": "UNIQUE_ID",
             },
         }
 
@@ -34,33 +29,42 @@ class SmartSeed:
     FUNCTION = "generate"
     CATEGORY = "YANP/utils"
 
-    # Make the node execute even when its seed output is not connected, so the
-    # in-node preview is always updated.
+    # Keep the node active even if its output is not connected, so a newly
+    # generated random seed can always be sent back to the visible Seed field.
     OUTPUT_NODE = True
 
     @classmethod
-    def IS_CHANGED(cls, **kwargs):
-        # Force one execution per queued run in BOTH Stop states.
-        # When Stop is On the value does not change, but the UI preview is still
-        # sent to the frontend.
-        return float("nan")
+    def IS_CHANGED(cls, Random=True, Seed="", **kwargs):
+        # Random mode must execute on every queued run. With Random disabled,
+        # the visible Seed value fully determines the output.
+        if Random:
+            return float("nan")
+        return str(Seed)
 
-    def generate(self, Stop=False, Seed="", unique_id=None):
-        key = str(unique_id)
+    @staticmethod
+    def _new_seed():
+        return secrets.randbelow(MAX_SEED)
 
-        if Stop:
-            # If Stop is already On before this node has ever generated a seed,
-            # create one seed once and immediately hold it.
-            if key not in _MEMORY:
-                _MEMORY[key] = secrets.randbelow(2**63)
+    @classmethod
+    def _parse_seed(cls, value):
+        try:
+            seed = int(str(value).strip())
+        except (TypeError, ValueError):
+            return cls._new_seed()
 
-            seed = _MEMORY[key]
+        if 0 <= seed < MAX_SEED:
+            return seed
+
+        return cls._new_seed()
+
+    def generate(self, Random=True, Seed=""):
+        if Random:
+            seed = self._new_seed()
         else:
-            seed = secrets.randbelow(2**63)
-            _MEMORY[key] = seed
+            # Seed should already exist in the frontend. This fallback keeps
+            # the contract true even for old/invalid workflows or API calls.
+            seed = self._parse_seed(Seed)
 
-        # Use the same UI-output convention as ComfyUI's core Preview as Text
-        # node. This is emitted on every execution, including Stop = On.
         return {
             "ui": {
                 "text": (str(seed),),
