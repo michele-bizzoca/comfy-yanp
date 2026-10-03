@@ -1,5 +1,6 @@
 import json
 import os
+import re
 
 import folder_paths
 from aiohttp import web
@@ -85,7 +86,9 @@ class EmbeddingLoader:
         else:
             parts = ([embeddings] if embeddings else []) + ([prompt] if prompt else [])
 
-        return (", ".join(parts),)
+        result = ". ".join(parts)
+        result = re.sub(r"\.{2,}", ".", result)
+        return (result,)
 
 
 NODE_CLASS_MAPPINGS = {
