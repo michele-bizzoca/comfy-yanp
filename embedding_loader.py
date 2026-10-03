@@ -88,6 +88,8 @@ class EmbeddingLoader:
 
         result = ". ".join(parts)
         result = re.sub(r"\.{2,}", ".", result)
+        result = result.rstrip()
+        result = result.rstrip(".") + "."
         return (result,)
 
 
