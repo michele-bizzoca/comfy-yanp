@@ -3,15 +3,13 @@ from comfy_execution.graph_utils import ExecutionBlocker
 
 ANY = "*"
 
-_MEMORY = {}
 
-
-class MemoryLatch:
+class YANPSimpleBlock:
     @classmethod
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "Pass": ("BOOLEAN", {
+                "Connected": ("BOOLEAN", {
                     "default": True,
                     "label_on": "On",
                     "label_off": "Off",
@@ -20,14 +18,11 @@ class MemoryLatch:
             "optional": {
                 "input": (ANY, {"lazy": True}),
             },
-            "hidden": {
-                "unique_id": "UNIQUE_ID",
-            },
         }
 
     RETURN_TYPES = (ANY,)
     RETURN_NAMES = ("output",)
-    FUNCTION = "latch"
+    FUNCTION = "switch"
     CATEGORY = "YANP/utils"
 
     @classmethod
@@ -35,28 +30,21 @@ class MemoryLatch:
         return True
 
     @classmethod
-    def check_lazy_status(cls, Pass, input=None, unique_id=None, **kwargs):
-        if Pass and input is None:
+    def check_lazy_status(cls, Connected, input=None, **kwargs):
+        if Connected and input is None:
             return ["input"]
         return []
 
-    def latch(self, Pass, input=None, unique_id=None):
-        key = str(unique_id)
-
-        if not Pass:
-            if key in _MEMORY:
-                return (_MEMORY[key],)
-
+    def switch(self, Connected, input=None):
+        if not Connected:
             return (ExecutionBlocker(None),)
-
-        _MEMORY[key] = input
         return (input,)
 
 
 NODE_CLASS_MAPPINGS = {
-    "YANPMemoryLatch": MemoryLatch,
+    "YANPSimpleBlock": YANPSimpleBlock,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "YANPMemoryLatch": "Latch",
+    "YANPSimpleBlock": "Simple Block",
 }

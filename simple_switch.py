@@ -1,7 +1,15 @@
-from comfy_execution.graph_utils import ExecutionBlocker
-
-
 ANY = "*"
+
+
+class _Disconnected:
+    """Internal marker used to represent an intentionally disconnected value."""
+    __slots__ = ()
+
+    def __repr__(self):
+        return "DISCONNECTED"
+
+
+DISCONNECTED = _Disconnected()
 
 
 class YANPSimpleSwitch:
@@ -31,13 +39,14 @@ class YANPSimpleSwitch:
 
     @classmethod
     def check_lazy_status(cls, Connected, input=None, **kwargs):
+        # When disconnected, do not evaluate the upstream branch at all.
         if Connected and input is None:
             return ["input"]
         return []
 
     def switch(self, Connected, input=None):
         if not Connected:
-            return (ExecutionBlocker(None),)
+            return (DISCONNECTED,)
         return (input,)
 
 
