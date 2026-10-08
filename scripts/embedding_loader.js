@@ -200,16 +200,20 @@ app.registerExtension({
         };
 
         nodeType.prototype.onConfigure = function (info) {
+            // Capture the saved state BEFORE the original configure logic:
+            // widget callbacks invoked during loading can overwrite properties.
+            const savedState = info?.properties?.embeddingLoaderState;
+            const snapshot = Array.isArray(savedState)
+                ? savedState.map(row => ({ ...row }))
+                : null;
+
             const result = onConfigure?.apply(this, arguments);
 
-            // Restore only state written by this version of the node.
-            requestAnimationFrame(() => {
-                const state = info?.properties?.embeddingLoaderState;
-
-                if (Array.isArray(state)) {
-                    this._yanpRestoreEmbeddingState?.(state);
-                }
-            });
+            // Restore synchronously. A deferred animation frame could apply an
+            // old snapshot after the user has already changed the node.
+            if (snapshot) {
+                this._yanpRestoreEmbeddingState?.(snapshot);
+            }
 
             return result;
         };
