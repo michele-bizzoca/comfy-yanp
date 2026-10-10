@@ -6,8 +6,8 @@ class SplitMask:
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "width": ("INT", {"default": 1216, "min": 1, "max": 16384, "step": 8}),
-                "height": ("INT", {"default": 832, "min": 1, "max": 16384, "step": 8}),
+                "width": ("INT", {"default": 1216, "min": 1, "max": 16384, "step": 1}),
+                "height": ("INT", {"default": 832, "min": 1, "max": 16384, "step": 1}),
                 "orientation": (["horizontal", "vertical"], {"default": "horizontal"}),
                 "transition_point": (
                     "FLOAT",
