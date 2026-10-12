@@ -17,6 +17,7 @@ app.registerExtension({
             const result = originalCreated?.apply(this, arguments);
             this._yanpLoraRows = [];
             this._yanpLoraNames = [];
+            this._yanpLoraNamesLoaded = false;
             this._yanpLoraSerial = 0;
             this._yanpLoraBusy = false;
             this._yanpLoraQueued = false;
@@ -62,8 +63,16 @@ app.registerExtension({
                 const id = ++this._yanpLoraSerial;
                 const row = {};
                 row.enabled = this.addWidget("toggle", `enable_${id}`, saved.enabled ?? true, sync, {on: "On", off: "Off"});
+                // While the asynchronous model list is loading, keep the saved
+                // selection in the combo's available values. Otherwise ComfyUI
+                // can briefly classify an existing LoRA as missing on restore.
                 row.lora = this.addWidget("combo", `lora_${id}`, saved.name ?? "", sync,
-                    {values: () => this._yanpLoraNames});
+                    {values: () => {
+                        const names = this._yanpLoraNames;
+                        const selected = row.lora?.value ?? saved.name;
+                        return !this._yanpLoraNamesLoaded && selected && !names.includes(selected)
+                            ? [...names, selected] : names;
+                    }});
                 row.model = this.addWidget("number", `strength_model_${id}`, round(saved.strength_model ?? 1), sync,
                     {min: -10, max: 10, step: 0.1, step2: 0.05, precision: 2});
                 row.clip = this.addWidget("number", `strength_clip_${id}`, round(saved.strength_clip ?? 1), sync,
@@ -190,17 +199,10 @@ app.registerExtension({
                     this._yanpLoraUpdate?.();
                 }));
             };
-            this._yanpLoraLayout = (initial = false) => {
+            this._yanpLoraLayout = () => {
                 const [w, h] = this.computeSize();
-                const current = this.size ?? [w, h];
-                // Connections and unrelated undo/redo must never reset a
-                // manually resized node. Grow only if content requires it.
-                const width = Math.max(220, w, current[0]);
-                const height = initial ? h : Math.max(h, current[1]);
-                if (width !== current[0] || height !== current[1]) {
-                    this.setSize([width, height]);
-                    this.setDirtyCanvas?.(true, true);
-                }
+                this.setSize([Math.max(220, w), h]);
+                this.setDirtyCanvas?.(true, true);
             };
 
             // Start with precisely one named MODEL/CLIP pair per side.
@@ -209,13 +211,13 @@ app.registerExtension({
             for (let n = MAX_PAIRS; n > 1; n--) removePair(n);
             addPair(1);
             this._yanpLoraPairs = 1;
-            // Initial compact sizing only; never shrink on later refreshes.
-            this._yanpLoraLayout(true);
+            this._yanpLoraLayout();
 
             api.fetchApi("/yanp/lora_loader/loras")
                 .then(r => r.json())
                 .then(names => {
                     this._yanpLoraNames = Array.isArray(names) ? names : [];
+                    this._yanpLoraNamesLoaded = true;
                     this.setDirtyCanvas?.(true, true);
                 }).catch(() => { this._yanpLoraNames = []; });
             return result;
