@@ -7,7 +7,7 @@ class OrientationSelector:
             }
         }
 
-    RETURN_TYPES = (["horizontal", "vertical"],)
+    RETURN_TYPES = ("STRING",)
     RETURN_NAMES = ("orientation",)
     FUNCTION = "select"
     CATEGORY = "utils"
