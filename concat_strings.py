@@ -12,7 +12,6 @@ class YANPStringConcatenate:
         return {
             "required": {
                 "string_1": ("STRING", {"forceInput": True}),
-                "string_2": ("STRING", {"forceInput": True}),
                 "separator": ("STRING", {
                     "default": "",
                     "multiline": False
@@ -20,7 +19,7 @@ class YANPStringConcatenate:
             },
             "optional": {
                 f"string_{i}": ("STRING", {"forceInput": True})
-                for i in range(3, cls.MAX_STRINGS + 1)
+                for i in range(2, cls.MAX_STRINGS + 1)
             },
         }
 
@@ -29,8 +28,8 @@ class YANPStringConcatenate:
     FUNCTION = "concatenate"
     CATEGORY = "YANP/text"
 
-    def concatenate(self, string_1, string_2, separator="", **kwargs):
-        values = [string_1, string_2]
+    def concatenate(self, string_1, separator="", **kwargs):
+        values = [string_1]
         dynamic = sorted(
             ((int(key[7:]), value) for key, value in kwargs.items()
              if key.startswith("string_") and key[7:].isdigit()),
