@@ -144,8 +144,7 @@ app.registerExtension({
             };
             const removeSocket = (side, socket) => {
                 const index = sockets(side).indexOf(socket);
-                if (index < 0) return;
-                // Called ONLY on an unconnected socket.
+                if (index < 0 || occupied(socket, side)) return;
                 if (side === "inputs") this.removeInput(index);
                 else this.removeOutput(index);
             };
@@ -154,8 +153,7 @@ app.registerExtension({
                     for (const socket of sockets(side)) {
                         const kind = slotType(socket.name);
                         if (!kind) continue;
-                        // Dynamic/wildcard peers may temporarily overwrite a
-                        // socket type. The bank identity ALWAYS wins.
+                        // Never infer type from an attached polymorphic link.
                         socket.type = kind.toUpperCase();
                     }
             };
@@ -218,6 +216,8 @@ app.registerExtension({
                         array.splice(0, array.length, ...ports, ...other);
                         refreshLinks(side);
                     }
+                    // All link endpoints must reflect the post-compaction
+                    // indexes before any subsequent graph transaction.
                     repairTypes();
                     if (orderWidget) orderWidget.value = JSON.stringify(
                         this.outputs.filter(s => slotType(s.name)).map(s => s.name));
@@ -293,6 +293,11 @@ app.registerExtension({
                 const result = configured?.call(this, info, ...rest);
                 const rows = info?.properties?.yanpLoraRows;
                 if (Array.isArray(rows)) this._yanpRestore?.(rows);
+                for (const side of ["inputs", "outputs"])
+                    for (const socket of this[side] || []) {
+                        const kind = slotType(socket.name);
+                        if (kind) socket.type = kind.toUpperCase();
+                    }
                 return result;
             } finally {
                 this._yanpConfiguring = false;
