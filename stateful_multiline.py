@@ -17,7 +17,7 @@ class StatefulMultiline:
     RETURN_NAMES = ("text",)
     FUNCTION = "get_text"
     CATEGORY = "YANP/input"
-    DESCRIPTION = "Multiline text input with save and recall functions."
+    DESCRIPTION = "Multiline text input with two independently saved defaults."
 
     def get_text(self, Text=""):
         return (Text,)
