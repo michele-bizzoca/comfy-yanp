@@ -125,24 +125,35 @@ app.registerExtension({
                 if (this._restoring || this._updating) return;
                 this._updating = true;
                 try {
-                    // Rebuild a missing half of an existing pair.
-                    for (const [n, p] of pairs()) {
-                        if (!p.input) this.addInput(`io_${n}`, "*");
-                        if (!p.output) this.addOutput(`io_${n}`, "*");
-                    }
+                    // The Python schema declares eight OUTPUTS. ComfyUI may
+                    // reinstate these during execution/serialization. Never
+                    // construct their missing INPUT halves: they are not real pairs.
                     let all = pairs();
                     const occupied = [...all].filter(([, p]) => busy(p));
                     const empties = [...all].filter(([, p]) => !busy(p));
-                    // Preserve only one empty pair, and move it to the end.
-                    const spare = empties.at(-1)?.[0];
+                    // Prefer an existing complete spare. Otherwise reserve the
+                    // smallest free identity. Keep just ONE spare pair.
+                    const spare = occupied.length < MAX
+                        ? (empties.find(([, p]) => p.input && p.output)?.[0]
+                           ?? empties[0]?.[0]
+                           ?? Array.from({length: MAX}, (_, i) => i + 1)
+                               .find(n => !all.has(n)))
+                        : null;
                     const keep = new Set([...occupied.map(([n]) => n), spare].filter(Boolean));
+                    // Remove ghosts BEFORE creating missing halves.
                     for (const side of ["inputs", "outputs"])
                         this[side] = (this[side] || []).filter(s => !id(s) || keep.has(id(s)));
                     all = pairs();
-                    if (!spare && all.size < MAX) {
-                        let n = 1;
-                        while (all.has(n)) n++;
-                        addPair(n);
+                    for (const n of keep) {
+                        const pair = all.get(n) || {};
+                        if (!pair.input) {
+                            this.addInput(`io_${n}`, "*");
+                            normalize(this.inputs.at(-1), n, "inputs");
+                        }
+                        if (!pair.output) {
+                            this.addOutput(`io_${n}`, "*");
+                            normalize(this.outputs.at(-1), n, "outputs");
+                        }
                     }
                     // A pair has one stable position on BOTH sides. Never sort the
                     // two socket arrays independently (which can rotate ports).
@@ -219,7 +230,6 @@ app.registerExtension({
             } finally { this._restoring = false; this._schedule?.(); }
         };
         proto.onSerialize = function (data, ...args) {
-            this._reconcile?.();
             const value = oldSerialize?.call(this, data, ...args);
             delete data.widgets_values;
             data.properties ??= {};
