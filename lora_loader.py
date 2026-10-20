@@ -1,6 +1,7 @@
-"""Independent, bounded MODEL and CLIP LoRA chains for ComfyUI."""
+"""YANP LoRA loader: up to eight dynamically exposed, polymorphic I/O chains."""
 import json
 import math
+import re
 
 import comfy.sd
 import folder_paths
@@ -8,6 +9,18 @@ from aiohttp import web
 from server import PromptServer
 
 MAX_PAIRS = 8
+IO_NAME = re.compile(r'^io_([1-8])$')
+
+
+class DynamicInputs(dict):
+    """Tell ComfyUI how to validate runtime-created io_N sockets."""
+    def __contains__(self, key):
+        return key in self.keys() or bool(IO_NAME.fullmatch(str(key)))
+
+    def __getitem__(self, key):
+        if IO_NAME.fullmatch(str(key)):
+            return ('*',)
+        return super().__getitem__(key)
 
 
 @PromptServer.instance.routes.get('/yanp/lora_loader/loras')
@@ -15,22 +28,36 @@ async def yanp_lora_loader_loras(request):
     return web.json_response(folder_paths.get_filename_list('loras'))
 
 
+def kind_of(value):
+    """Identify actual ComfyUI objects, never rely on renamed frontend labels."""
+    if value is None:
+        return None
+    if isinstance(value, comfy.sd.CLIP):
+        return 'clip'
+    # Deliberately avoid importing Comfy internals at module import time.
+    from comfy.model_patcher import ModelPatcher
+    if isinstance(value, ModelPatcher):
+        return 'model'
+    # Some custom nodes expose transparent wrappers/subclasses.
+    if hasattr(value, 'patcher') and hasattr(value, 'tokenize'):
+        return 'clip'
+    if hasattr(value, 'add_patches') and hasattr(value, 'model_options'):
+        return 'model'
+    raise TypeError(f'YANP LoRA Loader received an unsupported I/O object: {type(value).__name__}')
+
+
 class YANPLoraLoader:
     @classmethod
     def INPUT_TYPES(cls):
-        return {'required': {}, 'optional': {
-            **{f'model_{i}': ('MODEL',) for i in range(1, MAX_PAIRS + 1)},
-            **{f'clip_{i}': ('CLIP',) for i in range(1, MAX_PAIRS + 1)},
+        return {'required': {}, 'optional': DynamicInputs({
             'loraData': ('STRING', {'default': '[]'}),
             'portOrder': ('STRING', {'default': '[]'}),
-        }}
+        })}
 
-    # ComfyUI addresses outputs by positional index, not name. The frontend
-    # compacts visible outputs, so return positions are resolved using portOrder.
-    # Socket type restrictions are enforced in the frontend (MODEL or CLIP).
-    RETURN_TYPES = ('*',) * (MAX_PAIRS * 2)
-    RETURN_NAMES = tuple(f'model_{i}' for i in range(1, MAX_PAIRS + 1)) + tuple(
-        f'clip_{i}' for i in range(1, MAX_PAIRS + 1))
+    # Classic ComfyUI binds outputs by *index*. JS maintains portOrder in that
+    # exact index order. No legacy MODEL/CLIP outputs are declared.
+    RETURN_TYPES = ('*',) * MAX_PAIRS
+    RETURN_NAMES = tuple(f'io_{i}' for i in range(1, MAX_PAIRS + 1))
     FUNCTION = 'load'
     CATEGORY = 'YANP/loaders'
 
@@ -45,11 +72,22 @@ class YANPLoraLoader:
     def load(self, loraData='[]', portOrder='[]', **kwargs):
         try:
             entries = json.loads(loraData)
+            if not isinstance(entries, list):
+                entries = []
         except (TypeError, ValueError):
             entries = []
-        if not isinstance(entries, list):
-            entries = []
+        try:
+            order = json.loads(portOrder)
+        except (TypeError, ValueError):
+            order = None
+        if not isinstance(order, list):
+            order = []
+        order = [s for s in order if isinstance(s, str) and IO_NAME.fullmatch(s)]
+        if not order:
+            order = [f'io_{i}' for i in range(1, MAX_PAIRS + 1)]
 
+        inputs = {k: v for k, v in kwargs.items() if IO_NAME.fullmatch(k)}
+        kinds = {k: kind_of(v) for k, v in inputs.items()}
         specs = []
         for entry in entries:
             if not isinstance(entry, dict) or not entry.get('enabled', True):
@@ -57,45 +95,39 @@ class YANPLoraLoader:
             name = str(entry.get('name') or '').strip()
             if not name:
                 continue
-            model_weight = float(entry.get('strength_model', 1))
-            clip_weight = float(entry.get('strength_clip', 1))
-            if not math.isfinite(model_weight) or not math.isfinite(clip_weight):
-                raise ValueError(f'Invalid LoRA strengths for {name}')
-            if model_weight == clip_weight == 0:
+            mw = float(entry.get('strength_model', 1))
+            cw = float(entry.get('strength_clip', 1))
+            if not (math.isfinite(mw) and math.isfinite(cw)):
+                raise ValueError(f'Invalid LoRA strengths: {name}')
+            if mw == cw == 0:
                 continue
-            path = folder_paths.get_full_path_or_raise('loras', name)
-            specs.append((path, model_weight, clip_weight))
+            specs.append((name, mw, cw))
 
-        # Load files only if at least one connected input needs them.
-        has_models = any(kwargs.get(f'model_{i}') is not None for i in range(1, MAX_PAIRS + 1))
-        has_clips = any(kwargs.get(f'clip_{i}') is not None for i in range(1, MAX_PAIRS + 1))
-        from comfy.utils import load_torch_file
-        loaded = [(load_torch_file(path, safe_load=True), mw, cw)
-                  for path, mw, cw in specs
-                  if (has_models and mw != 0) or (has_clips and cw != 0)]
+        has_model = 'model' in kinds.values()
+        has_clip = 'clip' in kinds.values()
+        loaded = []
+        if has_model or has_clip:
+            from comfy.utils import load_torch_file
+            for name, mw, cw in specs:
+                if (has_model and mw) or (has_clip and cw):
+                    path = folder_paths.get_full_path_or_raise('loras', name)
+                    loaded.append((load_torch_file(path, safe_load=True), mw, cw))
 
-        outputs = {}
-        for kind in ('model', 'clip'):
-            for index in range(1, MAX_PAIRS + 1):
-                name = f'{kind}_{index}'
-                value = kwargs.get(name)
-                if value is not None:
-                    for lora, mw, cw in loaded:
-                        if kind == 'model' and mw:
-                            value, _ = comfy.sd.load_lora_for_models(value, None, lora, mw, 0)
-                        elif kind == 'clip' and cw:
-                            _, value = comfy.sd.load_lora_for_models(None, value, lora, 0, cw)
-                outputs[name] = value
+        result = {}
+        for key, value in inputs.items():
+            kind = kinds[key]
+            if kind == 'model':
+                for lora, mw, _ in loaded:
+                    if mw:
+                        value, _ = comfy.sd.load_lora_for_models(value, None, lora, mw, 0)
+            elif kind == 'clip':
+                for lora, _, cw in loaded:
+                    if cw:
+                        _, value = comfy.sd.load_lora_for_models(None, value, lora, 0, cw)
+            result[key] = value
 
-        try:
-            order = json.loads(portOrder)
-        except (ValueError, TypeError):
-            order = None
-        if not isinstance(order, list) or not order:
-            order = list(outputs)  # Fallback for older workflows.
-        # Return precisely 16 slots, in the actual visible output order.
-        return tuple([outputs.get(name) for name in order[:MAX_PAIRS * 2]] +
-                     [None] * max(0, MAX_PAIRS * 2 - len(order)))
+        return tuple([result.get(key) for key in order[:MAX_PAIRS]] +
+                     [None] * (MAX_PAIRS - min(len(order), MAX_PAIRS)))
 
 
 NODE_CLASS_MAPPINGS = {'YANPLoraLoader': YANPLoraLoader}
