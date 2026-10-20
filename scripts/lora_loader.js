@@ -144,12 +144,19 @@ app.registerExtension({
                         while (all.has(n)) n++;
                         addPair(n);
                     }
-                    // Keep each connected pair in existing order, free pair last.
-                    for (const side of ["inputs", "outputs"]) {
+                    // A pair has one stable position on BOTH sides. Never sort the
+                    // two socket arrays independently (which can rotate ports).
+                    // Existing occupied pairs retain their relative order; only
+                    // the empty spare is placed last.
+                    all = pairs();
+                    const orderIds = [
+                        ...all.keys().filter(n => busy(all.get(n))),
+                        ...all.keys().filter(n => !busy(all.get(n))),
+                    ];
+                    for (const [side, field] of [["inputs", "input"], ["outputs", "output"]]) {
                         const sockets = this[side];
-                        const ports = sockets.filter(s => id(s));
                         const rest = sockets.filter(s => !id(s));
-                        ports.sort((a, b) => Number(busy(all.get(id(a)))) - Number(busy(all.get(id(b)))));
+                        const ports = orderIds.map(n => all.get(n)[field]).filter(Boolean);
                         sockets.splice(0, sockets.length, ...ports, ...rest);
                         for (const s of ports) normalize(s, id(s), side);
                     }
