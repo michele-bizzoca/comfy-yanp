@@ -1,14 +1,12 @@
 import { app } from "../../scripts/app.js";
 import { api } from "../../scripts/api.js";
 
-// Eight positions of backend capacity, but only occupied I/O pairs plus one
-// spare are created in the interface. Each pair carries MODEL or CLIP.
+// Eight polymorphic pairs maximum; retain occupied pairs plus one spare.
 const CAPACITY = 8;
 const SOCKET = /^io_([1-9]\d*)$/;
-const occupied = (socket, side) => side === "inputs"
-    ? socket?.link != null : (socket?.links?.length ?? 0) > 0;
-const VALID_TYPES = new Set(["MODEL", "CLIP"]);
-const normalized = type => typeof type === "string" ? type.toUpperCase() : "";
+const idOf = s => s?._yanpId || Number(SOCKET.exec(s?.name || "")?.[1]) || 0;
+const used = (p) => p.input?.link != null || !!p.output?.links?.length;
+const typeOf = t => typeof t === "string" ? t.toUpperCase() : "";
 
 app.registerExtension({
     name: "yanp.loraLoader",
@@ -18,9 +16,10 @@ app.registerExtension({
         const created = proto.onNodeCreated;
         const configured = proto.onConfigure;
         const connectionsChanged = proto.onConnectionsChange;
-        const serialized = proto.onSerialize;
         const connectInput = proto.onConnectInput;
         const connectOutput = proto.onConnectOutput;
+        const serialized = proto.onSerialize;
+        const drawForeground = proto.onDrawForeground;
 
         proto.onNodeCreated = function (...args) {
             const result = created?.apply(this, args);
@@ -121,281 +120,227 @@ app.registerExtension({
             };
             this.addWidget("button", "+ Add LoRA", null, () => addRow());
 
-            // Slots are paired by identity: io_N input <-> io_N output.
-            // A row is occupied if either endpoint is connected. Maintain ONE
-            // empty row after all occupied rows, up to the eight-row capacity.
-            const sides = ["inputs", "outputs"];
-            const sockets = side => this[side] || [];
-            // Pair identity is private and independent of the user-visible label.
-            // LiteGraph may rename either `label` or `name` depending on the UI.
-            const portId = socket => {
-                if (Number.isInteger(socket?._yanpId)) return socket._yanpId;
-                const match = SOCKET.exec(socket?.name || "");
-                return match ? Number(match[1]) : null;
+            // All sockets remain wildcard (*). Only the Python executor
+            // identifies actual MODEL/CLIP objects.
+            const getPairs = () => {
+                const pairs = new Map();
+                for (const s of this.inputs || []) {
+                    const id = idOf(s);
+                    if (id >= 1 && id <= CAPACITY) {
+                        if (!pairs.has(id)) pairs.set(id, {});
+                        pairs.get(id).input = s;
+                    }
+                }
+                for (const s of this.outputs || []) {
+                    const id = idOf(s);
+                    if (id >= 1 && id <= CAPACITY) {
+                        if (!pairs.has(id)) pairs.set(id, {});
+                        pairs.get(id).output = s;
+                    }
+                }
+                return pairs;
             };
-            const isPort = socket => portId(socket) != null;
-            const linked = (socket, side) => occupied(socket, side);
+            const label = (s, id, side) => {
+                // LiteGraph's Rename may change name OR label; the true input
+                // key must remain io_N, while its displayed label is editable.
+                const key = `io_${id}`;
+                const automatic = /^i\/o \d+$/i;
+                if (s.name !== key && s.name && !automatic.test(s.name))
+                    s._yanpCustom = s.name;
+                if (s.label && s.label !== s._yanpShown &&
+                    s.label !== key && !automatic.test(s.label))
+                    s._yanpCustom = s.label;
+                s._yanpCustom ??= this.properties?.yanpPortLabels?.[key]?.[side];
+                s._yanpId = id;
+                s.name = key;
+                s.type = "*";
+                s._yanpShown = s._yanpCustom || `I/O ${id}`;
+                s.label = s._yanpShown;
+            };
+            const addPair = id => {
+                const key = `io_${id}`;
+                this.addInput(key, "*");
+                this.addOutput(key, "*");
+                label(this.inputs.at(-1), id, "inputs");
+                label(this.outputs.at(-1), id, "outputs");
+            };
             const reconcile = () => {
-                if (this._yanpUpdating || this._yanpConfiguring || !this.inputs || !this.outputs) return;
+                if (this._yanpUpdating || this._yanpConfiguring) return;
                 this._yanpUpdating = true;
                 try {
-                    // Remove obsolete sockets from the previous MODEL/CLIP loader.
-                    // Old saved nodes (or a stale backend schema) can expose
-                    // model_1..8 / clip_1..8 alongside the new io_1 socket.
-                    // Never disconnect existing links without the user's consent.
-                    for (const side of sides) {
-                        const array = sockets(side);
-                        for (let index = array.length - 1; index >= 0; index--) {
-                            const socket = array[index];
-                            if (!/^(model|clip)_\d+$/.test(socket?.name || "")) continue;
-                            if (linked(socket, side)) continue;
-                            if (side === "inputs") this.removeInput(index);
-                            else this.removeOutput(index);
-                        }
-                    }
-                    // Preserve the identity, name, label, and slot index of ALL
-                    // existing ports. Only newly allocated ports receive a name.
-                    const pairs = new Map();
-                    for (const side of sides) {
-                        for (const socket of sockets(side)) {
-                            const id = portId(socket);
-                            if (id == null || id < 1 || id > CAPACITY) continue;
-                            socket._yanpId = id;
-                            // LiteGraph's Rename action may edit `name` instead of
-                            // `label`. Keep the user's text as the visible label,
-                            // but keep io_N as the backend input key. In particular
-                            // io_1 on the LEFT must remain executable after rename.
-                            const canonical = `io_${id}`;
-                            if (socket.name !== canonical) {
-                                if (socket.name && socket.name !== socket._yanpInternalName &&
-                                    !/^i\/o \d+$/i.test(socket.name))
-                                    socket._yanpCustomLabel = socket.name;
-                                socket.name = canonical;
-                            }
-                            if (socket.label != null &&
-                                socket.label !== socket._yanpAutoLabel &&
-                                socket.label !== socket._yanpCustomLabel &&
-                                socket.label !== canonical &&
-                                !/^((I\/O|model|clip) \d+)$/i.test(socket.label))
-                                socket._yanpCustomLabel = socket.label;
-                            const saved = this._yanpSavedLabels?.[canonical]?.[side];
-                            if (!socket._yanpCustomLabel && saved)
-                                socket._yanpCustomLabel = saved;
-                            // Always enforce the canonical uppercase display label.
-                            // LiteGraph may restore an auto-label as lowercase "i/o N".
-                            socket._yanpAutoLabel = `I/O ${id}`;
-                            socket.label = socket._yanpCustomLabel ?? socket._yanpAutoLabel;
-                            socket._yanpInternalName = canonical;
-                            if (!pairs.has(id)) pairs.set(id, {});
-                            pairs.get(id)[side] = socket;
-                        }
-                    }
-                    const isUsed = pair => sides.some(side => linked(pair[side], side));
-                    const removeTail = (side, socket) => {
-                        if (!socket) return true;
-                        const array = sockets(side);
-                        const index = array.indexOf(socket);
-                        if (index < 0) return true;
-                        // Never delete a socket in the middle: that would shift
-                        // LiteGraph slot indices and may break existing links.
-                        if (index !== array.length - 1 || linked(socket, side)) return false;
-                        if (side === "inputs") this.removeInput(index);
-                        else this.removeOutput(index);
-                        return true;
-                    };
-
-                    // Drop only surplus EMPTY pairs at the very end. A free
-                    // pair in the middle remains untouched, even after unplugging.
-                    // Always retain exactly one free pair if capacity permits.
-                    const ordered = () => {
-                        const ids = [];
-                        for (const socket of [...sockets("outputs"), ...sockets("inputs")]) {
-                            const id = portId(socket);
-                            if (id != null && pairs.has(id) && !ids.includes(id)) ids.push(id);
-                        }
-                        return ids;
-                    };
-                    let ids = ordered();
-                    while (ids.length > 1) {
-                        const last = pairs.get(ids.at(-1));
-                        if (isUsed(last)) break;
-                        const anyOtherSpare = ids.slice(0, -1).some(id => !isUsed(pairs.get(id)));
-                        if (!anyOtherSpare) break;
-                        // Only remove the last actual socket on EACH side.
-                        if (sides.some(side => last[side] &&
-                            sockets(side).indexOf(last[side]) !== sockets(side).length - 1)) break;
-                        for (const side of sides) removeTail(side, last[side]);
-                        pairs.delete(ids.at(-1));
-                        ids = ordered();
+                    // Complete any half-pairs, preserving each socket's identity.
+                    for (const [id, pair] of getPairs()) {
+                        if (!pair.input) this.addInput(`io_${id}`, "*");
+                        if (!pair.output) this.addOutput(`io_${id}`, "*");
                     }
 
-                    // Complete a missing endpoint without touching the existing
-                    // endpoint's name or its position in the corresponding array.
-                    const addEndpoint = (id, side) => {
-                        const name = `io_${id}`;
-                        if (side === "inputs") this.addInput(name, "*");
-                        else this.addOutput(name, "*");
-                        const socket = sockets(side).at(-1);
-                        socket._yanpId = id;
-                        socket._yanpCustomLabel = this._yanpSavedLabels?.[name]?.[side] ?? null;
-                        socket.label = socket._yanpCustomLabel ?? `I/O ${id}`;
-                        socket._yanpAutoLabel = `I/O ${id}`;
-                        socket._yanpInternalName = name;
-                        return socket;
-                    };
-                    for (const id of ids) {
+                    // Keep every occupied pair and exactly one empty pair.
+                    // Deleting a middle pair never changes another pair's io_N.
+                    let pairs = getPairs();
+                    const empty = [...pairs].filter(([, p]) => !used(p)).map(([id]) => id);
+                    const lastId = idOf(this.outputs?.at(-1));
+                    const spare = pairs.size && [...pairs.values()].every(p => !used(p))
+                        ? [...pairs.keys()][0]
+                        : (empty.includes(lastId) ? lastId : null);
+                    for (const id of empty.filter(id => id !== spare)) {
                         const pair = pairs.get(id);
-                        for (const side of sides)
-                            if (!pair[side]) pair[side] = addEndpoint(id, side);
+                        const inputIndex = this.inputs.indexOf(pair.input);
+                        const outputIndex = this.outputs.indexOf(pair.output);
+                        if (inputIndex !== -1) this.removeInput(inputIndex);
+                        if (outputIndex !== -1) this.removeOutput(outputIndex);
                     }
 
-                    // If every existing pair is occupied, append one new pair.
-                    // Its number is the smallest currently available, not a
-                    // renumbering of previously created ports.
-                    if (ids.length < CAPACITY && ids.every(id => isUsed(pairs.get(id)))) {
+                    pairs = getPairs();
+                    if (!pairs.size || (![...pairs.values()].some(p => !used(p)) && pairs.size < CAPACITY)) {
+                        const taken = new Set(pairs.keys());
                         let id = 1;
-                        while (pairs.has(id)) id++;
-                        if (id <= CAPACITY) {
-                            pairs.set(id, {
-                                inputs: addEndpoint(id, "inputs"),
-                                outputs: addEndpoint(id, "outputs"),
-                            });
-                        }
+                        while (taken.has(id)) id++;
+                        addPair(id);
                     }
-                    // Outputs are bound by position in Python, so communicate
-                    // exactly their current order without sorting/reindexing.
+
+                    // Deleting a slot changes positional LiteGraph indices. Repair
+                    // link endpoints explicitly without disconnecting any links.
+                    for (const [side, field] of [["inputs", "target_slot"], ["outputs", "origin_slot"]]) {
+                        (this[side] || []).forEach((socket, index) => {
+                            const links = side === "inputs" ? [socket.link] : (socket.links || []);
+                            for (const linkId of links) {
+                                if (linkId == null) continue;
+                                const link = this.graph?.links?.[linkId];
+                                if (!link) continue;
+                                if (Array.isArray(link)) link[side === "inputs" ? 4 : 2] = index;
+                                else link[field] = index;
+                            }
+                        });
+                    }
+
+                    for (const [id, p] of getPairs()) {
+                        if (p.input) label(p.input, id, "inputs");
+                        if (p.output) label(p.output, id, "outputs");
+                    }
                     if (orderWidget) orderWidget.value = JSON.stringify(
-                        sockets("outputs").filter(isPort).map(s => `io_${portId(s)}`));
+                        this.outputs.filter(idOf).map(s => `io_${idOf(s)}`));
                     if (!this._yanpInitialLayoutDone) {
                         this._yanpInitialLayoutDone = true;
-                        if (!this._yanpWasConfigured) {
-                            const minimum = this.computeSize?.();
-                            if (Array.isArray(minimum) && minimum.every(Number.isFinite))
-                                this.setSize?.(minimum);
-                        }
+                        if (!this._yanpWasConfigured) this.setSize?.(this.computeSize?.());
                     }
                     layout();
-                } finally {
-                    this._yanpUpdating = false;
-                }
+                } finally { this._yanpUpdating = false; }
             };
             this._yanpReconcile = reconcile;
+            this._yanpSignature = () => [
+                ...(this.inputs || []).map(s => s.link ?? ""),
+                ...(this.outputs || []).map(s => (s.links || []).join(",")),
+            ].join("|");
             this._yanpSchedule = () => {
-                // A connection may occur while reconciliation is running.
-                // Do not lose that notification: the deferred pass observes
-                // the graph after LiteGraph has committed the new link.
                 if (this._yanpConfiguring || this._yanpScheduled) return;
                 this._yanpScheduled = true;
-                // Connection callbacks can run BEFORE the link is detached.
-                // A macrotask observes the committed graph, once per batch.
                 setTimeout(() => {
                     this._yanpScheduled = false;
-                    if (this._yanpUpdating) {
-                        this._yanpSchedule();
-                        return;
-                    }
+                    if (this._yanpUpdating) return this._yanpSchedule();
                     reconcile();
+                    this._yanpLastSignature = this._yanpSignature();
                 }, 0);
             };
-            // The backend declares a virtual capacity, but UI removes unused sockets
-            // once node creation/configuration has completed.
             this._yanpSchedule();
             api.fetchApi("/yanp/lora_loader/loras")
-                .then(response => response.json())
+                .then(r => r.json())
                 .then(names => {
                     this._yanpNames = Array.isArray(names) ? names : [];
                     this._yanpNamesReady = true;
-                    this.setDirtyCanvas?.(true, true);
-                })
-                .catch(() => { this._yanpNames = []; });
+                    layout();
+                }).catch(() => {});
             return result;
         };
 
-        // A free wildcard pair must not be rejected by hooks inherited from
-        // ComfyUI or earlier extension code.  LiteGraph checks normal socket
-        // compatibility itself; we only reject known MODEL/CLIP conflicts.
-        // Crucially, callbacks are called BEFORE the link exists.
-        proto.onConnectInput = function (slot, outputType, ...rest) {
-            const socket = this.inputs?.[slot];
-            const id = socket?._yanpId ?? (SOCKET.exec(socket?.name || "")?.[1] | 0);
-            if (!id) return connectInput?.call(this, slot, outputType, ...rest) ?? true;
-            const incoming = normalized(outputType);
-            if (incoming && incoming !== "*" && !VALID_TYPES.has(incoming)) return false;
-            const other = this.outputs?.find(s => (s._yanpId ?? Number(SOCKET.exec(s.name || "")?.[1])) === id);
-            if (VALID_TYPES.has(incoming) && other?.links?.length &&
-                VALID_TYPES.has(normalized(other.type)) && normalized(other.type) !== incoming)
-                return false;
-            // Some LiteGraph versions do not dispatch onConnectionsChange
-            // to the input node. Schedule here too, after link creation.
-            this._yanpSchedule?.();
-            return true;
+        // Callback fallback when the first socket is connected.
+        proto.onConnectInput = function (...args) {
+            const result = connectInput?.apply(this, args) ?? true;
+            if (result !== false) this._yanpSchedule?.();
+            return result;
         };
-        proto.onConnectOutput = function (slot, inputType, ...rest) {
-            const socket = this.outputs?.[slot];
-            const id = socket?._yanpId ?? (SOCKET.exec(socket?.name || "")?.[1] | 0);
-            if (!id) return connectOutput?.call(this, slot, inputType, ...rest) ?? true;
-            const requested = normalized(inputType);
-            if (requested && requested !== "*" && !VALID_TYPES.has(requested)) return false;
-            const other = this.inputs?.find(s => (s._yanpId ?? Number(SOCKET.exec(s.name || "")?.[1])) === id);
-            if (VALID_TYPES.has(requested) && other?.link != null &&
-                VALID_TYPES.has(normalized(other.type)) && normalized(other.type) !== requested)
-                return false;
-            this._yanpSchedule?.();
-            return true;
+        proto.onConnectOutput = function (...args) {
+            const result = connectOutput?.apply(this, args) ?? true;
+            if (result !== false) this._yanpSchedule?.();
+            return result;
         };
         proto.onConnectionsChange = function (...args) {
             const result = connectionsChanged?.apply(this, args);
             this._yanpSchedule?.();
             return result;
         };
-        proto.onConfigure = function (info, ...rest) {
+        // Fallback for ComfyUI versions that omit the first input callback.
+        proto.onDrawForeground = function (...args) {
+            const result = drawForeground?.apply(this, args);
+            if (!this._yanpUpdating && !this._yanpConfiguring &&
+                this._yanpSignature?.() !== this._yanpLastSignature)
+                this._yanpSchedule?.();
+            return result;
+        };
+        proto.onConfigure = function (info, ...args) {
             this._yanpWasConfigured = true;
             this._yanpConfiguring = true;
             try {
-                const result = configured?.call(this, info, ...rest);
-                const rows = info?.properties?.yanpLoraRows;
-                if (Array.isArray(rows)) this._yanpRestore?.(rows);
-                this._yanpSavedLabels = info?.properties?.yanpPortLabels || null;
-                // Some LiteGraph versions preserve a rename in `name` instead
-                // of `label`. Capture it before the next canonicalization.
-                for (const side of ["inputs", "outputs"])
-                    for (const socket of this[side] || []) {
-                        const id = socket._yanpId ?? Number(SOCKET.exec(socket.name || "")?.[1]);
-                        if (!id || id > CAPACITY) continue;
-                        const value = socket.label && socket.label !== socket.name ? socket.label
-                            : (socket.name !== `io_${id}` ? socket.name : null);
-                        if (value && !/^((I\/O|model|clip) \d+)$/i.test(value)) {
-                            this._yanpSavedLabels ??= {};
-                            (this._yanpSavedLabels[`io_${id}`] ??= {})[side] = value;
-                        }
-                    }
+                const result = configured?.call(this, info, ...args);
+                if (Array.isArray(info?.properties?.yanpLoraRows))
+                    this._yanpRestore?.(info.properties.yanpLoraRows);
+                // Preserve persisted custom labels independently for each side.
+                this.properties ??= {};
+                this.properties.yanpPortLabels = info?.properties?.yanpPortLabels || {};
                 return result;
             } finally {
                 this._yanpConfiguring = false;
                 this._yanpSchedule?.();
             }
         };
-        proto.onSerialize = function (data, ...rest) {
+        proto.onSerialize = function (data, ...args) {
             this._yanpReconcile?.();
-            const result = serialized?.call(this, data, ...rest);
-            // Strip any inherited positional widget serialization.
-            // The complete editable row state is stored below by name.
+            const result = serialized?.call(this, data, ...args);
             delete data.widgets_values;
             data.properties ??= {};
-            data.properties.yanpLoraRows = this._yanpState?.() ?? [];
+            data.properties.yanpLoraRows = this._yanpState?.() || [];
             data.properties.yanpPortLabels = {};
             for (const side of ["inputs", "outputs"])
-                for (const socket of this[side] || []) {
-                    const id = socket._yanpId ?? Number(SOCKET.exec(socket.name || "")?.[1]);
-                    if (!id || id > CAPACITY) continue;
-                    const key = `io_${id}`;
-                    const custom = socket._yanpCustomLabel ??
-                        (socket.label && socket.label !== socket._yanpAutoLabel &&
-                         socket.label !== socket.name ? socket.label : null);
-                    if (custom)
-                        (data.properties.yanpPortLabels[key] ??= {})[side] = custom;
+                for (const s of this[side] || []) {
+                    const id = idOf(s);
+                    if (!id) continue;
+                    if (s._yanpCustom)
+                        (data.properties.yanpPortLabels[`io_${id}`] ??= {})[side] = s._yanpCustom;
                 }
             return result;
         };
     },
+    setup() {
+        const originalQueue = app.queuePrompt.bind(app);
+        app.queuePrompt = async (...args) => {
+            validateConnections();
+            return originalQueue(...args);
+        };
+    },
 });
+
+// Graph-level check immediately before execution (no socket type changes).
+function validateConnections() {
+        const graph = app.graph;
+        for (const node of graph?._nodes || []) {
+            if (node.type !== "YANPLoraLoader") continue;
+            const inputs = new Map((node.inputs || []).map(s => [idOf(s), s]));
+            for (const out of node.outputs || []) {
+                const id = idOf(out);
+                if (!id) continue;
+                const input = inputs.get(id);
+                const link = graph.links?.[input?.link];
+                const origin = graph.getNodeById?.(link?.origin_id);
+                const source = origin?.outputs?.[link?.origin_slot];
+                const incoming = typeOf(source?.type);
+                if (incoming && incoming !== "*" && incoming !== "MODEL" && incoming !== "CLIP")
+                    throw new Error(`LoRA Loader: I/O ${id} expects MODEL or CLIP, got ${incoming}`);
+                for (const linkId of out.links || []) {
+                    const edge = graph.links?.[linkId];
+                    const target = graph.getNodeById?.(edge?.target_id);
+                    const expected = typeOf(target?.inputs?.[edge?.target_slot]?.type);
+                    if (incoming && incoming !== "*" && expected && expected !== "*" && incoming !== expected)
+                        throw new Error(`LoRA Loader: I/O ${id} ${incoming} connected to ${expected}`);
+                }
+            }
+        }
+}
