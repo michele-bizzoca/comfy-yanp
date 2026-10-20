@@ -161,6 +161,31 @@ app.registerExtension({
                             const id = portId(socket);
                             if (id == null || id < 1 || id > CAPACITY) continue;
                             socket._yanpId = id;
+                            // LiteGraph's Rename action may edit `name` instead of
+                            // `label`. Keep the user's text as the visible label,
+                            // but keep io_N as the backend input key. In particular
+                            // io_1 on the LEFT must remain executable after rename.
+                            const canonical = `io_${id}`;
+                            if (socket.name !== canonical) {
+                                if (socket.name && socket.name !== socket._yanpInternalName &&
+                                    !/^i\/o \d+$/i.test(socket.name))
+                                    socket._yanpCustomLabel = socket.name;
+                                socket.name = canonical;
+                            }
+                            if (socket.label != null &&
+                                socket.label !== socket._yanpAutoLabel &&
+                                socket.label !== socket._yanpCustomLabel &&
+                                socket.label !== canonical &&
+                                !/^((I\/O|model|clip) \d+)$/i.test(socket.label))
+                                socket._yanpCustomLabel = socket.label;
+                            const saved = this._yanpSavedLabels?.[canonical]?.[side];
+                            if (!socket._yanpCustomLabel && saved)
+                                socket._yanpCustomLabel = saved;
+                            // Always enforce the canonical uppercase display label.
+                            // LiteGraph may restore an auto-label as lowercase "i/o N".
+                            socket._yanpAutoLabel = `I/O ${id}`;
+                            socket.label = socket._yanpCustomLabel ?? socket._yanpAutoLabel;
+                            socket._yanpInternalName = canonical;
                             if (!pairs.has(id)) pairs.set(id, {});
                             pairs.get(id)[side] = socket;
                         }
@@ -212,8 +237,10 @@ app.registerExtension({
                         else this.addOutput(name, "*");
                         const socket = sockets(side).at(-1);
                         socket._yanpId = id;
-                        socket.label = this._yanpSavedLabels?.[name]?.[side] ?? `I/O ${id}`;
+                        socket._yanpCustomLabel = this._yanpSavedLabels?.[name]?.[side] ?? null;
+                        socket.label = socket._yanpCustomLabel ?? `I/O ${id}`;
                         socket._yanpAutoLabel = `I/O ${id}`;
+                        socket._yanpInternalName = name;
                         return socket;
                     };
                     for (const id of ids) {
@@ -324,7 +351,8 @@ app.registerExtension({
                     for (const socket of this[side] || []) {
                         const id = socket._yanpId ?? Number(SOCKET.exec(socket.name || "")?.[1]);
                         if (!id || id > CAPACITY) continue;
-                        const value = socket.label && socket.label !== socket.name ? socket.label : null;
+                        const value = socket.label && socket.label !== socket.name ? socket.label
+                            : (socket.name !== `io_${id}` ? socket.name : null);
                         if (value && !/^((I\/O|model|clip) \d+)$/i.test(value)) {
                             this._yanpSavedLabels ??= {};
                             (this._yanpSavedLabels[`io_${id}`] ??= {})[side] = value;
@@ -350,8 +378,11 @@ app.registerExtension({
                     const id = socket._yanpId ?? Number(SOCKET.exec(socket.name || "")?.[1]);
                     if (!id || id > CAPACITY) continue;
                     const key = `io_${id}`;
-                    if (socket._yanpCustomLabel)
-                        (data.properties.yanpPortLabels[key] ??= {})[side] = socket._yanpCustomLabel;
+                    const custom = socket._yanpCustomLabel ??
+                        (socket.label && socket.label !== socket._yanpAutoLabel &&
+                         socket.label !== socket.name ? socket.label : null);
+                    if (custom)
+                        (data.properties.yanpPortLabels[key] ??= {})[side] = custom;
                 }
             return result;
         };
