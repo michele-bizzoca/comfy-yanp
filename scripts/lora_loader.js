@@ -281,12 +281,19 @@ app.registerExtension({
             };
             this._yanpReconcile = reconcile;
             this._yanpSchedule = () => {
-                if (this._yanpUpdating || this._yanpConfiguring || this._yanpScheduled) return;
+                // A connection may occur while reconciliation is running.
+                // Do not lose that notification: the deferred pass observes
+                // the graph after LiteGraph has committed the new link.
+                if (this._yanpConfiguring || this._yanpScheduled) return;
                 this._yanpScheduled = true;
                 // Connection callbacks can run BEFORE the link is detached.
                 // A macrotask observes the committed graph, once per batch.
                 setTimeout(() => {
                     this._yanpScheduled = false;
+                    if (this._yanpUpdating) {
+                        this._yanpSchedule();
+                        return;
+                    }
                     reconcile();
                 }, 0);
             };
@@ -318,6 +325,9 @@ app.registerExtension({
             if (VALID_TYPES.has(incoming) && other?.links?.length &&
                 VALID_TYPES.has(normalized(other.type)) && normalized(other.type) !== incoming)
                 return false;
+            // Some LiteGraph versions do not dispatch onConnectionsChange
+            // to the input node. Schedule here too, after link creation.
+            this._yanpSchedule?.();
             return true;
         };
         proto.onConnectOutput = function (slot, inputType, ...rest) {
@@ -330,6 +340,7 @@ app.registerExtension({
             if (VALID_TYPES.has(requested) && other?.link != null &&
                 VALID_TYPES.has(normalized(other.type)) && normalized(other.type) !== requested)
                 return false;
+            this._yanpSchedule?.();
             return true;
         };
         proto.onConnectionsChange = function (...args) {
