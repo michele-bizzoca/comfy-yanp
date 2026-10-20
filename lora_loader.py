@@ -12,17 +12,6 @@ MAX_PAIRS = 8
 IO_NAME = re.compile(r'^io_([1-8])$')
 
 
-class DynamicInputs(dict):
-    """Tell ComfyUI how to validate runtime-created io_N sockets."""
-    def __contains__(self, key):
-        return key in self.keys() or bool(IO_NAME.fullmatch(str(key)))
-
-    def __getitem__(self, key):
-        if IO_NAME.fullmatch(str(key)):
-            return ('*',)
-        return super().__getitem__(key)
-
-
 @PromptServer.instance.routes.get('/yanp/lora_loader/loras')
 async def yanp_lora_loader_loras(request):
     return web.json_response(folder_paths.get_filename_list('loras'))
@@ -49,13 +38,14 @@ def kind_of(value):
 class YANPLoraLoader:
     @classmethod
     def INPUT_TYPES(cls):
-        return {'required': {}, 'optional': DynamicInputs({
-            'loraData': ('STRING', {'default': '[]'}),
-            'portOrder': ('STRING', {'default': '[]'}),
-        })}
+        # Like Embedding Loader: the backend declares every possible input,
+        # and the frontend shows only the pairs currently needed.
+        optional = {'loraData': ('STRING', {'default': '[]'})}
+        for n in range(1, MAX_PAIRS + 1):
+            optional[f'io_{n}'] = ('*', {'forceInput': True})
+        return {'required': {}, 'optional': optional}
 
-    # Classic ComfyUI binds outputs by *index*. JS maintains portOrder in that
-    # exact index order. No legacy MODEL/CLIP outputs are declared.
+    # Fixed output positions: io_N always maps to output index N-1.
     RETURN_TYPES = ('*',) * MAX_PAIRS
     RETURN_NAMES = tuple(f'io_{i}' for i in range(1, MAX_PAIRS + 1))
     FUNCTION = 'load'
@@ -69,22 +59,13 @@ class YANPLoraLoader:
     def IS_CHANGED(cls, **kwargs):
         return json.dumps(kwargs, sort_keys=True, default=str)
 
-    def load(self, loraData='[]', portOrder='[]', **kwargs):
+    def load(self, loraData='[]', **kwargs):
         try:
             entries = json.loads(loraData)
             if not isinstance(entries, list):
                 entries = []
         except (TypeError, ValueError):
             entries = []
-        try:
-            order = json.loads(portOrder)
-        except (TypeError, ValueError):
-            order = None
-        if not isinstance(order, list):
-            order = []
-        order = [s for s in order if isinstance(s, str) and IO_NAME.fullmatch(s)]
-        if not order:
-            order = [f'io_{i}' for i in range(1, MAX_PAIRS + 1)]
 
         inputs = {k: v for k, v in kwargs.items() if IO_NAME.fullmatch(k)}
         kinds = {k: kind_of(v) for k, v in inputs.items()}
@@ -126,8 +107,7 @@ class YANPLoraLoader:
                         _, value = comfy.sd.load_lora_for_models(None, value, lora, 0, cw)
             result[key] = value
 
-        return tuple([result.get(key) for key in order[:MAX_PAIRS]] +
-                     [None] * (MAX_PAIRS - min(len(order), MAX_PAIRS)))
+        return tuple(result.get(f'io_{n}') for n in range(1, MAX_PAIRS + 1))
 
 
 NODE_CLASS_MAPPINGS = {'YANPLoraLoader': YANPLoraLoader}
