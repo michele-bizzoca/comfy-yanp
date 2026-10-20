@@ -1,134 +1,256 @@
-"""YANP LoRA loader: up to eight dynamically exposed, polymorphic I/O chains."""
-import json
-import math
-import re
+import { app } from "../../scripts/app.js";
+import { api } from "../../scripts/api.js";
 
-import comfy.sd
-import folder_paths
-from aiohttp import web
-from server import PromptServer
+const MAX = 8;
+const KEY = /^io_([1-8])$/;
+const id = s => s?._yanpId || Number(KEY.exec(s?.name || "")?.[1]) || 0;
+const busy = p => p.input?.link != null || (p.output?.links?.length || 0) > 0;
 
-MAX_PAIRS = 8
-IO_NAME = re.compile(r'^io_([1-8])$')
+app.registerExtension({
+    name: "yanp.loraLoader",
+    beforeRegisterNodeDef(Node, definition) {
+        if (definition.name !== "YANPLoraLoader") return;
+        const proto = Node.prototype;
+        const oldCreate = proto.onNodeCreated;
+        const oldConfigure = proto.onConfigure;
+        const oldSerialize = proto.onSerialize;
+        const oldConnections = proto.onConnectionsChange;
+        const oldDraw = proto.onDrawForeground;
 
+        proto.onNodeCreated = function (...args) {
+            const result = oldCreate?.apply(this, args);
+            this.serialize_widgets = false;
+            this._rows = [];
+            this._nextRow = 0;
+            this._names = [];
+            this._restoring = false;
+            this._scheduled = false;
+            this._updating = false;
 
-class DynamicInputs(dict):
-    """Tell ComfyUI how to validate runtime-created io_N sockets."""
-    def __contains__(self, key):
-        return key in self.keys() or bool(IO_NAME.fullmatch(str(key)))
+            const hidden = name => {
+                const w = this.widgets?.find(w => w.name === name);
+                if (!w) return null;
+                w.hidden = true;
+                w.options ??= {};
+                w.options.hidden = true;
+                w.computeSize = () => [0, -4];
+                return w;
+            };
+            const data = hidden("loraData");
+            const order = hidden("portOrder");
+            const saveRows = () => {
+                const values = this._rows.map(r => ({
+                    enabled: !!r.enable.value, name: r.lora.value || "",
+                    strength_model: Number(r.model.value), strength_clip: Number(r.clip.value),
+                }));
+                if (data) data.value = JSON.stringify(values);
+                (this.properties ??= {}).yanpLoraRows = values;
+                this.setDirtyCanvas?.(true, true);
+                return values;
+            };
+            const addRow = (value = {}) => {
+                const n = ++this._nextRow;
+                const r = {};
+                r.enable = this.addWidget("toggle", `enable_${n}`, value.enabled ?? true, saveRows);
+                r.lora = this.addWidget("combo", `lora_${n}`, value.name ?? "", saveRows,
+                    { values: () => [...new Set([...this._names, r.lora?.value].filter(Boolean))] });
+                r.model = this.addWidget("number", `strength_model_${n}`, value.strength_model ?? 1,
+                    saveRows, { min: -10, max: 10, step: 0.1, step2: 0.05, precision: 2 });
+                r.clip = this.addWidget("number", `strength_clip_${n}`, value.strength_clip ?? 1,
+                    saveRows, { min: -10, max: 10, step: 0.1, step2: 0.05, precision: 2 });
+                r.remove = this.addWidget("button", `remove_${n}`, null, () => {
+                    const gone = new Set(Object.values(r));
+                    this.widgets = this.widgets.filter(w => !gone.has(w));
+                    this._rows.splice(this._rows.indexOf(r), 1);
+                    saveRows();
+                });
+                this._rows.push(r);
+                saveRows();
+            };
+            this._restoreRows = values => {
+                const previous = new Set(this._rows.flatMap(r => Object.values(r)));
+                this.widgets = (this.widgets || []).filter(w => !previous.has(w));
+                this._rows = [];
+                for (const value of values) addRow(value);
+                saveRows();
+            };
+            this.addWidget("button", "+ Add LoRA", null, () => addRow());
 
-    def __getitem__(self, key):
-        if IO_NAME.fullmatch(str(key)):
-            return ('*',)
-        return super().__getitem__(key)
-
-
-@PromptServer.instance.routes.get('/yanp/lora_loader/loras')
-async def yanp_lora_loader_loras(request):
-    return web.json_response(folder_paths.get_filename_list('loras'))
-
-
-def kind_of(value):
-    """Identify actual ComfyUI objects, never rely on renamed frontend labels."""
-    if value is None:
-        return None
-    if isinstance(value, comfy.sd.CLIP):
-        return 'clip'
-    # Deliberately avoid importing Comfy internals at module import time.
-    from comfy.model_patcher import ModelPatcher
-    if isinstance(value, ModelPatcher):
-        return 'model'
-    # Some custom nodes expose transparent wrappers/subclasses.
-    if hasattr(value, 'patcher') and hasattr(value, 'tokenize'):
-        return 'clip'
-    if hasattr(value, 'add_patches') and hasattr(value, 'model_options'):
-        return 'model'
-    raise TypeError(f'YANP LoRA Loader received an unsupported I/O object: {type(value).__name__}')
-
-
-class YANPLoraLoader:
-    @classmethod
-    def INPUT_TYPES(cls):
-        return {'required': {}, 'optional': DynamicInputs({
-            'loraData': ('STRING', {'default': '[]'}),
-            'portOrder': ('STRING', {'default': '[]'}),
-        })}
-
-    # Classic ComfyUI binds outputs by *index*. JS maintains portOrder in that
-    # exact index order. No legacy MODEL/CLIP outputs are declared.
-    RETURN_TYPES = ('*',) * MAX_PAIRS
-    RETURN_NAMES = tuple(f'io_{i}' for i in range(1, MAX_PAIRS + 1))
-    FUNCTION = 'load'
-    CATEGORY = 'YANP/loaders'
-
-    @classmethod
-    def VALIDATE_INPUTS(cls, **kwargs):
-        return True
-
-    @classmethod
-    def IS_CHANGED(cls, **kwargs):
-        return json.dumps(kwargs, sort_keys=True, default=str)
-
-    def load(self, loraData='[]', portOrder='[]', **kwargs):
-        try:
-            entries = json.loads(loraData)
-            if not isinstance(entries, list):
-                entries = []
-        except (TypeError, ValueError):
-            entries = []
-        try:
-            order = json.loads(portOrder)
-        except (TypeError, ValueError):
-            order = None
-        if not isinstance(order, list):
-            order = []
-        order = [s for s in order if isinstance(s, str) and IO_NAME.fullmatch(s)]
-        if not order:
-            order = [f'io_{i}' for i in range(1, MAX_PAIRS + 1)]
-
-        inputs = {k: v for k, v in kwargs.items() if IO_NAME.fullmatch(k)}
-        kinds = {k: kind_of(v) for k, v in inputs.items()}
-        specs = []
-        for entry in entries:
-            if not isinstance(entry, dict) or not entry.get('enabled', True):
-                continue
-            name = str(entry.get('name') or '').strip()
-            if not name:
-                continue
-            mw = float(entry.get('strength_model', 1))
-            cw = float(entry.get('strength_clip', 1))
-            if not (math.isfinite(mw) and math.isfinite(cw)):
-                raise ValueError(f'Invalid LoRA strengths: {name}')
-            if mw == cw == 0:
-                continue
-            specs.append((name, mw, cw))
-
-        has_model = 'model' in kinds.values()
-        has_clip = 'clip' in kinds.values()
-        loaded = []
-        if has_model or has_clip:
-            from comfy.utils import load_torch_file
-            for name, mw, cw in specs:
-                if (has_model and mw) or (has_clip and cw):
-                    path = folder_paths.get_full_path_or_raise('loras', name)
-                    loaded.append((load_torch_file(path, safe_load=True), mw, cw))
-
-        result = {}
-        for key, value in inputs.items():
-            kind = kinds[key]
-            if kind == 'model':
-                for lora, mw, _ in loaded:
-                    if mw:
-                        value, _ = comfy.sd.load_lora_for_models(value, None, lora, mw, 0)
-            elif kind == 'clip':
-                for lora, _, cw in loaded:
-                    if cw:
-                        _, value = comfy.sd.load_lora_for_models(None, value, lora, 0, cw)
-            result[key] = value
-
-        return tuple([result.get(key) for key in order[:MAX_PAIRS]] +
-                     [None] * (MAX_PAIRS - min(len(order), MAX_PAIRS)))
-
-
-NODE_CLASS_MAPPINGS = {'YANPLoraLoader': YANPLoraLoader}
-NODE_DISPLAY_NAME_MAPPINGS = {'YANPLoraLoader': 'LoRA Loader'}
+            // _yanpId never changes. Only `label` is user-editable.
+            // If LiteGraph's Rename changes `name`, capture it as a label and
+            // put back the canonical backend key before prompt serialization.
+            const normalize = (socket, n, side) => {
+                socket._yanpId = n;
+                const key = `io_${n}`;
+                const fallback = `I/O ${n}`;
+                const saved = this.properties?.yanpLabels?.[key]?.[side];
+                if (socket.name !== key && socket.name) socket.label = socket.name;
+                else if (!socket.label || socket.label === key || socket.label.toLowerCase() === fallback.toLowerCase())
+                    socket.label = saved || fallback;
+                socket.name = key;
+                socket.type = "*";
+            };
+            const pairs = () => {
+                const map = new Map();
+                for (const [side, field] of [["inputs", "input"], ["outputs", "output"]])
+                    for (const socket of this[side] || []) {
+                        const n = id(socket);
+                        if (!n || n > MAX) continue;
+                        if (!map.has(n)) map.set(n, {});
+                        map.get(n)[field] = socket;
+                    }
+                return map;
+            };
+            const addPair = n => {
+                this.addInput(`io_${n}`, "*");
+                this.addOutput(`io_${n}`, "*");
+                normalize(this.inputs.at(-1), n, "inputs");
+                normalize(this.outputs.at(-1), n, "outputs");
+            };
+            const refreshLinks = () => {
+                for (const [side, field, arrayIndex] of [
+                    ["inputs", "target_slot", 4], ["outputs", "origin_slot", 2]
+                ]) (this[side] || []).forEach((socket, index) => {
+                    const links = side === "inputs" ? [socket.link] : (socket.links || []);
+                    for (const linkId of links) {
+                        const link = this.graph?.links?.[linkId];
+                        if (link) {
+                            if (Array.isArray(link)) link[arrayIndex] = index;
+                            else link[field] = index;
+                        }
+                    }
+                });
+            };
+            const reconcile = () => {
+                if (this._restoring || this._updating) return;
+                this._updating = true;
+                try {
+                    // Rebuild a missing half of an existing pair.
+                    for (const [n, p] of pairs()) {
+                        if (!p.input) this.addInput(`io_${n}`, "*");
+                        if (!p.output) this.addOutput(`io_${n}`, "*");
+                    }
+                    let all = pairs();
+                    const occupied = [...all].filter(([, p]) => busy(p));
+                    const empties = [...all].filter(([, p]) => !busy(p));
+                    // Preserve only one empty pair, and move it to the end.
+                    const spare = empties.at(-1)?.[0];
+                    const keep = new Set([...occupied.map(([n]) => n), spare].filter(Boolean));
+                    for (const side of ["inputs", "outputs"])
+                        this[side] = (this[side] || []).filter(s => !id(s) || keep.has(id(s)));
+                    all = pairs();
+                    if (!spare && all.size < MAX) {
+                        let n = 1;
+                        while (all.has(n)) n++;
+                        addPair(n);
+                    }
+                    // Keep each connected pair in existing order, free pair last.
+                    for (const side of ["inputs", "outputs"]) {
+                        const sockets = this[side];
+                        const ports = sockets.filter(s => id(s));
+                        const rest = sockets.filter(s => !id(s));
+                        ports.sort((a, b) => Number(busy(all.get(id(a)))) - Number(busy(all.get(id(b)))));
+                        sockets.splice(0, sockets.length, ...ports, ...rest);
+                        for (const s of ports) normalize(s, id(s), side);
+                    }
+                    refreshLinks();
+                    if (order) order.value = JSON.stringify(this.outputs.filter(s => id(s)).map(s => `io_${id(s)}`));
+                    this.setDirtyCanvas?.(true, true);
+                } finally { this._updating = false; }
+            };
+            this._reconcile = reconcile;
+            this._schedule = () => {
+                if (this._scheduled || this._restoring) return;
+                this._scheduled = true;
+                setTimeout(() => { this._scheduled = false; reconcile(); }, 0);
+            };
+            // First pair is created immediately, not by a connection callback.
+            // Assign IDs to sockets restored/declared by the backend as early as possible.
+            for (const s of [...(this.inputs || []), ...(this.outputs || [])])
+                if (KEY.test(s.name || "")) s._yanpId = Number(KEY.exec(s.name)[1]);
+            this._schedule();
+            api.fetchApi("/yanp/lora_loader/loras").then(r => r.json())
+                .then(v => { this._names = Array.isArray(v) ? v : []; this.setDirtyCanvas?.(true, true); })
+                .catch(() => {});
+            return result;
+        };
+        // Wildcard inputs/outputs: don't delegate to inherited type restrictions.
+        proto.onConnectInput = () => true;
+        proto.onConnectOutput = () => true;
+        proto.onConnectionsChange = function (...args) {
+            const value = oldConnections?.apply(this, args);
+            this._schedule?.();
+            return value;
+        };
+        // In some ComfyUI versions the first input connection skips callbacks.
+        // A cheap state signature catches it, plus user-initiated renames.
+        proto.onDrawForeground = function (...args) {
+            const value = oldDraw?.apply(this, args);
+            const signature = [
+                ...(this.inputs || []).map(s => `${s.link}:${s.name}:${s.label}`),
+                ...(this.outputs || []).map(s => `${s.links?.join(",")}:${s.name}:${s.label}`)
+            ].join("|");
+            if (signature !== this._signature) {
+                this._signature = signature;
+                this._schedule?.();
+            }
+            return value;
+        };
+        proto.onConfigure = function (info, ...args) {
+            this._restoring = true;
+            try {
+                const value = oldConfigure?.call(this, info, ...args);
+                for (const side of ["inputs", "outputs"])
+                    (this[side] || []).forEach((s, i) => {
+                        s._yanpId = Number(KEY.exec(s.name || "")?.[1]) ||
+                            Number(KEY.exec(info?.[side]?.[i]?.name || "")?.[1]) || s._yanpId;
+                    });
+                if (Array.isArray(info?.properties?.yanpLoraRows))
+                    this._restoreRows?.(info.properties.yanpLoraRows);
+                (this.properties ??= {}).yanpLabels = info?.properties?.yanpLabels || {};
+                return value;
+            } finally { this._restoring = false; this._schedule?.(); }
+        };
+        proto.onSerialize = function (data, ...args) {
+            this._reconcile?.();
+            const value = oldSerialize?.call(this, data, ...args);
+            delete data.widgets_values;
+            data.properties ??= {};
+            data.properties.yanpLoraRows = this._rows.map(r => ({
+                enabled: !!r.enable.value, name: r.lora.value || "",
+                strength_model: Number(r.model.value), strength_clip: Number(r.clip.value)
+            }));
+            data.properties.yanpLabels = {};
+            for (const side of ["inputs", "outputs"])
+                for (const s of this[side] || []) if (id(s))
+                    (data.properties.yanpLabels[`io_${id(s)}`] ??= {})[side] = s.label;
+            return value;
+        };
+    },
+    setup() {
+        const queue = app.queuePrompt.bind(app);
+        app.queuePrompt = async (...args) => {
+            for (const node of app.graph?._nodes || []) {
+                if (node.type !== "YANPLoraLoader") continue;
+                for (const input of node.inputs || []) {
+                    const n = id(input);
+                    if (!n || input.link == null) continue;
+                    const link = app.graph.links?.[input.link];
+                    const source = app.graph.getNodeById?.(link?.origin_id);
+                    const kind = source?.outputs?.[link?.origin_slot]?.type?.toUpperCase();
+                    if (kind && kind !== "*" && kind !== "MODEL" && kind !== "CLIP")
+                        throw Error(`LoRA Loader I/O ${n}: unsupported input type ${kind}`);
+                    const output = node.outputs?.find(s => id(s) === n);
+                    for (const linkId of output?.links || []) {
+                        const edge = app.graph.links?.[linkId];
+                        const target = app.graph.getNodeById?.(edge?.target_id);
+                        const expected = target?.inputs?.[edge?.target_slot]?.type?.toUpperCase();
+                        if (kind && kind !== "*" && expected && expected !== "*" && kind !== expected)
+                            throw Error(`LoRA Loader I/O ${n}: ${kind} connected to ${expected}`);
+                    }
+                }
+            }
+            return queue(...args);
+        };
+    },
+});
