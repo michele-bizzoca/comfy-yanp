@@ -16,8 +16,6 @@ app.registerExtension({
         const created = proto.onNodeCreated;
         const configured = proto.onConfigure;
         const connectionsChanged = proto.onConnectionsChange;
-        const connectInput = proto.onConnectInput;
-        const connectOutput = proto.onConnectOutput;
         const serialized = proto.onSerialize;
         const drawForeground = proto.onDrawForeground;
 
@@ -140,19 +138,29 @@ app.registerExtension({
                 }
                 return pairs;
             };
+            // Assign IDs synchronously. The first input comes from the backend
+            // schema and exists before the first scheduled reconciliation.
+            // If it gets renamed meanwhile, its identity must not be lost.
+            const identifySockets = () => {
+                for (const side of ["inputs", "outputs"])
+                    for (const socket of this[side] || []) {
+                        const match = SOCKET.exec(socket.name || "");
+                        if (match && !socket._yanpId) socket._yanpId = Number(match[1]);
+                    }
+            };
+            identifySockets();
             const label = (s, id, side) => {
                 // LiteGraph's Rename may change name OR label; the true input
                 // key must remain io_N, while its displayed label is editable.
                 const key = `io_${id}`;
-                const automatic = /^i\/o \d+$/i;
-                // Rename can edit `name` (especially on the first input),
-                // whereas other LiteGraph builds edit `label`.
-                // Only the internal key is reserved: do not reject a user
-                // rename merely because it resembles an automatic label.
+                // A rename may edit either the name or the label.
+                // Do not accidentally interpret the UI's automatic lowercase
+                // variant as a custom label; keep actual custom edits intact.
+                const automatic = value => new RegExp(`^i/o ${id}$`, "i").test(value || "");
                 if (s.name && s.name !== key && s.name !== s._yanpInternalName)
                     s._yanpCustom = s.name;
                 if (s.label && s.label !== s._yanpShown && s.label !== key &&
-                    (s._yanpShown != null || !automatic.test(s.label)))
+                    !automatic(s.label))
                     s._yanpCustom = s.label;
                 s._yanpCustom ??= this.properties?.yanpPortLabels?.[key]?.[side];
                 s._yanpId = id;
@@ -233,8 +241,8 @@ app.registerExtension({
             };
             this._yanpReconcile = reconcile;
             this._yanpSignature = () => [
-                ...(this.inputs || []).map(s => s.link ?? ""),
-                ...(this.outputs || []).map(s => (s.links || []).join(",")),
+                ...(this.inputs || []).map(s => `${s.link ?? ""}:${s.name}:${s.label ?? ""}`),
+                ...(this.outputs || []).map(s => `${(s.links || []).join(",")}:${s.name}:${s.label ?? ""}`),
             ].join("|");
             this._yanpSchedule = () => {
                 if (this._yanpConfiguring || this._yanpScheduled) return;
@@ -245,15 +253,6 @@ app.registerExtension({
                     reconcile();
                     this._yanpLastSignature = this._yanpSignature();
                 }, 0);
-            };
-            // onConnectInput runs *before* LiteGraph commits a new link.
-            // Some ComfyUI versions don't dispatch onConnectionsChange for
-            // the first dynamically-created input. Recheck after commit,
-            // even if the canvas stops drawing immediately afterwards.
-            this._yanpAfterConnect = () => {
-                this._yanpSchedule();
-                for (const delay of [40, 150])
-                    setTimeout(() => this._yanpSchedule?.(), delay);
             };
             this._yanpSchedule();
             api.fetchApi("/yanp/lora_loader/loras")
@@ -266,16 +265,23 @@ app.registerExtension({
             return result;
         };
 
-        // Callback fallback when the first socket is connected.
+        // Do not delegate to inherited hooks: wildcard sockets accept any
+        // upstream/downstream type. Python validates real values at runtime,
+        // and queue validation checks declared MODEL/CLIP compatibility.
+        // Schedule a post-commit reconciliation using the normal event loop.
         proto.onConnectInput = function (...args) {
-            const result = connectInput?.apply(this, args) ?? true;
-            if (result !== false) this._yanpAfterConnect?.();
-            return result;
+            if (idOf(this.inputs?.[args[0]])) {
+                this._yanpSchedule?.();
+                return true;
+            }
+            return true;
         };
         proto.onConnectOutput = function (...args) {
-            const result = connectOutput?.apply(this, args) ?? true;
-            if (result !== false) this._yanpAfterConnect?.();
-            return result;
+            if (idOf(this.outputs?.[args[0]])) {
+                this._yanpSchedule?.();
+                return true;
+            }
+            return true;
         };
         proto.onConnectionsChange = function (...args) {
             const result = connectionsChanged?.apply(this, args);
@@ -295,6 +301,17 @@ app.registerExtension({
             this._yanpConfiguring = true;
             try {
                 const result = configured?.call(this, info, ...args);
+                // Recover identities from the saved socket order if a custom
+                // rename was written to `name` instead of `label`.
+                for (const side of ["inputs", "outputs"]) {
+                    for (let i = 0; i < (this[side]?.length || 0); i++) {
+                        const socket = this[side][i];
+                        if (idOf(socket)) continue;
+                        const counterpart = this[side === "inputs" ? "outputs" : "inputs"]?.[i];
+                        const id = idOf(counterpart);
+                        if (id) socket._yanpId = id;
+                    }
+                }
                 if (Array.isArray(info?.properties?.yanpLoraRows))
                     this._yanpRestore?.(info.properties.yanpLoraRows);
                 // Preserve persisted custom labels independently for each side.
