@@ -145,14 +145,19 @@ app.registerExtension({
                 // key must remain io_N, while its displayed label is editable.
                 const key = `io_${id}`;
                 const automatic = /^i\/o \d+$/i;
-                if (s.name !== key && s.name && !automatic.test(s.name))
+                // Rename can edit `name` (especially on the first input),
+                // whereas other LiteGraph builds edit `label`.
+                // Only the internal key is reserved: do not reject a user
+                // rename merely because it resembles an automatic label.
+                if (s.name && s.name !== key && s.name !== s._yanpInternalName)
                     s._yanpCustom = s.name;
-                if (s.label && s.label !== s._yanpShown &&
-                    s.label !== key && !automatic.test(s.label))
+                if (s.label && s.label !== s._yanpShown && s.label !== key &&
+                    (s._yanpShown != null || !automatic.test(s.label)))
                     s._yanpCustom = s.label;
                 s._yanpCustom ??= this.properties?.yanpPortLabels?.[key]?.[side];
                 s._yanpId = id;
                 s.name = key;
+                s._yanpInternalName = key;
                 s.type = "*";
                 s._yanpShown = s._yanpCustom || `I/O ${id}`;
                 s.label = s._yanpShown;
@@ -241,6 +246,15 @@ app.registerExtension({
                     this._yanpLastSignature = this._yanpSignature();
                 }, 0);
             };
+            // onConnectInput runs *before* LiteGraph commits a new link.
+            // Some ComfyUI versions don't dispatch onConnectionsChange for
+            // the first dynamically-created input. Recheck after commit,
+            // even if the canvas stops drawing immediately afterwards.
+            this._yanpAfterConnect = () => {
+                this._yanpSchedule();
+                for (const delay of [40, 150])
+                    setTimeout(() => this._yanpSchedule?.(), delay);
+            };
             this._yanpSchedule();
             api.fetchApi("/yanp/lora_loader/loras")
                 .then(r => r.json())
@@ -255,12 +269,12 @@ app.registerExtension({
         // Callback fallback when the first socket is connected.
         proto.onConnectInput = function (...args) {
             const result = connectInput?.apply(this, args) ?? true;
-            if (result !== false) this._yanpSchedule?.();
+            if (result !== false) this._yanpAfterConnect?.();
             return result;
         };
         proto.onConnectOutput = function (...args) {
             const result = connectOutput?.apply(this, args) ?? true;
-            if (result !== false) this._yanpSchedule?.();
+            if (result !== false) this._yanpAfterConnect?.();
             return result;
         };
         proto.onConnectionsChange = function (...args) {
