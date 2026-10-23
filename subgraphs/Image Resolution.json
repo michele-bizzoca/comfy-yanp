@@ -1,8 +1,282 @@
 {
-  "templates": [
+  "nodes": [
     {
-      "name": "Image Resolution",
-      "data": "{\"nodes\":[{\"id\":3,\"type\":\"16b45f78-809b-405d-814d-6aaccb832b43\",\"pos\":[2216.6509954534904,1069.9049550666487],\"size\":[231.52899945071658,70.7696192965459],\"flags\":{},\"order\":0,\"mode\":0,\"inputs\":[{\"name\":\"image\",\"type\":\"IMAGE\",\"link\":null}],\"outputs\":[{\"label\":\"resolution\",\"name\":\"INT\",\"type\":\"INT\",\"links\":null}],\"title\":\"Image Resolution\",\"properties\":{\"previewExposures\":[]}}],\"groups\":[],\"reroutes\":[],\"links\":[],\"subgraphs\":[{\"id\":\"16b45f78-809b-405d-814d-6aaccb832b43\",\"version\":1,\"state\":{\"lastGroupId\":0,\"lastNodeId\":3,\"lastLinkId\":4,\"lastRerouteId\":0},\"revision\":0,\"config\":{},\"name\":\"Image Resolution\",\"inputNode\":{\"id\":-10,\"bounding\":[1977.5882022895912,1043.9049550666487,128,68]},\"outputNode\":{\"id\":-20,\"bounding\":[2583.8826008064875,1033.7444175573983,128,68]},\"inputs\":[{\"id\":\"1ebc48cb-b542-422d-96d9-733c4afd1660\",\"name\":\"image\",\"type\":\"IMAGE\",\"linkIds\":[1],\"pos\":[2081.588202289591,1067.9049550666487]}],\"outputs\":[{\"id\":\"2a7d5965-ac42-469a-8d7d-f424ddcec9f8\",\"name\":\"INT\",\"type\":\"INT\",\"linkIds\":[2],\"label\":\"resolution\",\"pos\":[2607.8826008064875,1057.7444175573983]}],\"widgets\":[],\"nodes\":[{\"id\":1,\"type\":\"GetImageSize\",\"pos\":[2131.381059341781,1007.3579692980215],\"size\":[171.15898169503544,118.49611046446194],\"flags\":{},\"order\":0,\"mode\":0,\"inputs\":[{\"localized_name\":\"image\",\"name\":\"image\",\"type\":\"IMAGE\",\"link\":1}],\"outputs\":[{\"localized_name\":\"width\",\"name\":\"width\",\"type\":\"INT\",\"links\":[3]},{\"localized_name\":\"height\",\"name\":\"height\",\"type\":\"INT\",\"links\":[4]},{\"localized_name\":\"batch_size\",\"name\":\"batch_size\",\"type\":\"INT\",\"links\":[]}],\"properties\":{\"Node name for S&R\":\"GetImageSize\"}},{\"id\":2,\"type\":\"ComfyMathExpression\",\"pos\":[2321.3336616466063,1007.4213891476406],\"size\":[210,128],\"flags\":{},\"order\":1,\"mode\":0,\"inputs\":[{\"localized_name\":\"a\",\"name\":\"values.a\",\"type\":\"FLOAT,INT,BOOLEAN\",\"link\":3},{\"localized_name\":\"b\",\"name\":\"values.b\",\"shape\":7,\"type\":\"FLOAT,INT,BOOLEAN\",\"link\":4},{\"localized_name\":\"c\",\"name\":\"values.c\",\"shape\":7,\"type\":\"FLOAT,INT,BOOLEAN\",\"link\":null},{\"localized_name\":\"expression\",\"name\":\"expression\",\"type\":\"STRING\",\"widget\":{\"name\":\"expression\"},\"link\":null}],\"outputs\":[{\"localized_name\":\"FLOAT\",\"name\":\"FLOAT\",\"type\":\"FLOAT\",\"links\":[]},{\"localized_name\":\"INT\",\"name\":\"INT\",\"type\":\"INT\",\"links\":[2]},{\"localized_name\":\"BOOL\",\"name\":\"BOOL\",\"type\":\"BOOLEAN\",\"links\":[]}],\"properties\":{\"Node name for S&R\":\"ComfyMathExpression\"},\"widgets_values\":[\"min(a,b)\"],\"widgets_values_named\":{\"expression\":\"min(a,b)\"}}],\"groups\":[],\"links\":[{\"id\":1,\"origin_id\":-10,\"origin_slot\":0,\"target_id\":1,\"target_slot\":0,\"type\":\"IMAGE\"},{\"id\":2,\"origin_id\":2,\"origin_slot\":1,\"target_id\":-20,\"target_slot\":0,\"type\":\"INT\"},{\"id\":3,\"origin_id\":1,\"origin_slot\":0,\"target_id\":2,\"target_slot\":0,\"type\":\"INT\"},{\"id\":4,\"origin_id\":1,\"origin_slot\":1,\"target_id\":2,\"target_slot\":1,\"type\":\"INT\"}],\"extra\":{}}]}"
+      "id": 3,
+      "type": "16b45f78-809b-405d-814d-6aaccb832b43",
+      "pos": [
+        2216.6509954534904,
+        1069.9049550666487
+      ],
+      "size": [
+        231.52899945071658,
+        70.7696192965459
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "label": "resolution",
+          "name": "INT",
+          "type": "INT",
+          "links": null
+        }
+      ],
+      "title": "Image Resolution",
+      "properties": {
+        "previewExposures": [],
+        "category": "YANP/Utils"
+      }
     }
-  ]
+  ],
+  "groups": [],
+  "reroutes": [],
+  "links": [],
+  "definitions": {
+    "subgraphs": [
+      {
+        "id": "16b45f78-809b-405d-814d-6aaccb832b43",
+        "version": 1,
+        "state": {
+          "lastGroupId": 0,
+          "lastNodeId": 3,
+          "lastLinkId": 4,
+          "lastRerouteId": 0
+        },
+        "revision": 0,
+        "config": {},
+        "name": "Image Resolution",
+        "inputNode": {
+          "id": -10,
+          "bounding": [
+            1977.5882022895912,
+            1043.9049550666487,
+            128,
+            68
+          ]
+        },
+        "outputNode": {
+          "id": -20,
+          "bounding": [
+            2583.8826008064875,
+            1033.7444175573983,
+            128,
+            68
+          ]
+        },
+        "inputs": [
+          {
+            "id": "1ebc48cb-b542-422d-96d9-733c4afd1660",
+            "name": "image",
+            "type": "IMAGE",
+            "linkIds": [
+              1
+            ],
+            "pos": [
+              2081.588202289591,
+              1067.9049550666487
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "id": "2a7d5965-ac42-469a-8d7d-f424ddcec9f8",
+            "name": "INT",
+            "type": "INT",
+            "linkIds": [
+              2
+            ],
+            "label": "resolution",
+            "pos": [
+              2607.8826008064875,
+              1057.7444175573983
+            ]
+          }
+        ],
+        "widgets": [],
+        "nodes": [
+          {
+            "id": 1,
+            "type": "GetImageSize",
+            "pos": [
+              2131.381059341781,
+              1007.3579692980215
+            ],
+            "size": [
+              171.15898169503544,
+              118.49611046446194
+            ],
+            "flags": {},
+            "order": 0,
+            "mode": 0,
+            "inputs": [
+              {
+                "localized_name": "image",
+                "name": "image",
+                "type": "IMAGE",
+                "link": 1
+              }
+            ],
+            "outputs": [
+              {
+                "localized_name": "width",
+                "name": "width",
+                "type": "INT",
+                "links": [
+                  3
+                ]
+              },
+              {
+                "localized_name": "height",
+                "name": "height",
+                "type": "INT",
+                "links": [
+                  4
+                ]
+              },
+              {
+                "localized_name": "batch_size",
+                "name": "batch_size",
+                "type": "INT",
+                "links": []
+              }
+            ],
+            "properties": {
+              "Node name for S&R": "GetImageSize"
+            }
+          },
+          {
+            "id": 2,
+            "type": "ComfyMathExpression",
+            "pos": [
+              2321.3336616466063,
+              1007.4213891476406
+            ],
+            "size": [
+              210,
+              128
+            ],
+            "flags": {},
+            "order": 1,
+            "mode": 0,
+            "inputs": [
+              {
+                "localized_name": "a",
+                "name": "values.a",
+                "type": "FLOAT,INT,BOOLEAN",
+                "link": 3
+              },
+              {
+                "localized_name": "b",
+                "name": "values.b",
+                "shape": 7,
+                "type": "FLOAT,INT,BOOLEAN",
+                "link": 4
+              },
+              {
+                "localized_name": "c",
+                "name": "values.c",
+                "shape": 7,
+                "type": "FLOAT,INT,BOOLEAN",
+                "link": null
+              },
+              {
+                "localized_name": "expression",
+                "name": "expression",
+                "type": "STRING",
+                "widget": {
+                  "name": "expression"
+                },
+                "link": null
+              }
+            ],
+            "outputs": [
+              {
+                "localized_name": "FLOAT",
+                "name": "FLOAT",
+                "type": "FLOAT",
+                "links": []
+              },
+              {
+                "localized_name": "INT",
+                "name": "INT",
+                "type": "INT",
+                "links": [
+                  2
+                ]
+              },
+              {
+                "localized_name": "BOOL",
+                "name": "BOOL",
+                "type": "BOOLEAN",
+                "links": []
+              }
+            ],
+            "properties": {
+              "Node name for S&R": "ComfyMathExpression"
+            },
+            "widgets_values": [
+              "min(a,b)"
+            ],
+            "widgets_values_named": {
+              "expression": "min(a,b)"
+            }
+          }
+        ],
+        "groups": [],
+        "links": [
+          {
+            "id": 1,
+            "origin_id": -10,
+            "origin_slot": 0,
+            "target_id": 1,
+            "target_slot": 0,
+            "type": "IMAGE"
+          },
+          {
+            "id": 2,
+            "origin_id": 2,
+            "origin_slot": 1,
+            "target_id": -20,
+            "target_slot": 0,
+            "type": "INT"
+          },
+          {
+            "id": 3,
+            "origin_id": 1,
+            "origin_slot": 0,
+            "target_id": 2,
+            "target_slot": 0,
+            "type": "INT"
+          },
+          {
+            "id": 4,
+            "origin_id": 1,
+            "origin_slot": 1,
+            "target_id": 2,
+            "target_slot": 1,
+            "type": "INT"
+          }
+        ],
+        "extra": {
+          "category": "YANP/Utils"
+        },
+        "category": "YANP/Utils"
+      }
+    ]
+  },
+  "id": "e20dc935-c398-4b4d-a0f6-80993ef35b69",
+  "revision": 0,
+  "last_node_id": 3,
+  "last_link_id": 0,
+  "version": 0.4,
+  "config": {},
+  "extra": {}
 }
