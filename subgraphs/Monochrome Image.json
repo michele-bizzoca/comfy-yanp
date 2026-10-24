@@ -21,10 +21,11 @@
           "link": null
         },
         {
-          "name": "color",
-          "type": "INT",
+          "name": "choice",
+          "label": "Color",
+          "type": "COMBO",
           "widget": {
-            "name": "color"
+            "name": "choice"
           },
           "link": null
         }
@@ -36,18 +37,18 @@
           "links": null
         }
       ],
-      "title": "Empty Image",
+      "title": "Monochrome Image",
       "properties": {
-        "Node name for S&R": "Empty Image",
+        "Node name for S&R": "Monochrome Image",
         "cnr_id": "comfy-yanp",
         "category": "Comfy YANP/utils",
         "previewExposures": []
       },
       "widgets_values": [
-        0
+        "Black"
       ],
       "widgets_values_named": {
-        "color": 0
+        "choice": "Black"
       }
     }
   ],
@@ -61,13 +62,13 @@
         "version": 1,
         "state": {
           "lastGroupId": 0,
-          "lastNodeId": 30,
-          "lastLinkId": 22,
+          "lastNodeId": 40,
+          "lastLinkId": 23,
           "lastRerouteId": 0
         },
         "revision": 0,
         "config": {},
-        "name": "Empty Image",
+        "name": "Monochrome Image",
         "inputNode": {
           "id": -10,
           "bounding": [
@@ -101,13 +102,13 @@
             ]
           },
           {
-            "id": "14332c54-405b-40e9-ba20-c214a528efe0",
-            "name": "color",
-            "type": "INT",
+            "id": "ac909cd7-5e92-4a54-a162-5f0f0e216b94",
+            "name": "choice",
+            "label": "Color",
+            "type": "COMBO",
             "linkIds": [
-              21
+              23
             ],
-            "label": "color (0 black, 1 white, 2 red, 3 green, 4 blue)",
             "pos": [
               0,
               0
@@ -648,6 +649,67 @@
               0,
               1
             ]
+          },
+          {
+            "id": 40,
+            "type": "CustomCombo",
+            "pos": [
+              -100,
+              -150
+            ],
+            "size": [
+              270,
+              190
+            ],
+            "flags": {},
+            "order": 0,
+            "mode": 0,
+            "inputs": [
+              {
+                "name": "choice",
+                "label": "Color",
+                "type": "COMBO",
+                "widget": {
+                  "name": "choice"
+                },
+                "link": 23
+              }
+            ],
+            "outputs": [
+              {
+                "name": "STRING",
+                "type": "STRING",
+                "links": null
+              },
+              {
+                "name": "INDEX",
+                "type": "INT",
+                "links": [
+                  21
+                ]
+              }
+            ],
+            "properties": {
+              "Node name for S&R": "CustomCombo"
+            },
+            "widgets_values": [
+              "Black",
+              0,
+              "Black",
+              "White",
+              "Red",
+              "Green",
+              "Blue"
+            ],
+            "widgets_values_named": {
+              "choice": "Black",
+              "index": 0,
+              "option1": "Black",
+              "option2": "White",
+              "option3": "Red",
+              "option4": "Green",
+              "option5": "Blue"
+            }
           }
         ],
         "groups": [],
@@ -813,24 +875,32 @@
             "type": "IMAGE"
           },
           {
-            "id": 21,
-            "origin_id": -10,
-            "origin_slot": 1,
-            "target_id": 30,
-            "target_slot": 1,
-            "type": "INT"
-          },
-          {
             "id": 22,
             "origin_id": 30,
             "origin_slot": 0,
             "target_id": -20,
             "target_slot": 0,
             "type": "IMAGE"
+          },
+          {
+            "id": 21,
+            "origin_id": 40,
+            "origin_slot": 1,
+            "target_id": 30,
+            "target_slot": 1,
+            "type": "INT"
+          },
+          {
+            "id": 23,
+            "origin_id": -10,
+            "origin_slot": 1,
+            "target_id": 40,
+            "target_slot": 0,
+            "type": "COMBO"
           }
         ],
         "extra": {},
-        "description": "Comfy YANP / utils. color: 0 black, 1 white, 2 red, 3 green, 4 blue."
+        "description": "Creates a solid RGB image matching the input dimensions. Open subgraph to choose color via CustomCombo."
       }
     ]
   }
