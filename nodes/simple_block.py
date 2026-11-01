@@ -23,7 +23,7 @@ class YANPSimpleBlock:
     RETURN_TYPES = (ANY,)
     RETURN_NAMES = ("output",)
     FUNCTION = "switch"
-    CATEGORY = "YANP/utils"
+    CATEGORY = "YANP/circuits"
 
     @classmethod
     def VALIDATE_INPUTS(cls, **kwargs):
