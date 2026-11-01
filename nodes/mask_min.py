@@ -49,4 +49,4 @@ class MaskMin:
         
 
 NODE_CLASS_MAPPINGS = {"mask_min": MaskMin}
-NODE_DISPLAY_NAME_MAPPINGS = {"mask_min": "Mask Min"}
+NODE_DISPLAY_NAME_MAPPINGS = {"mask_min": "Mask Minimum"}
