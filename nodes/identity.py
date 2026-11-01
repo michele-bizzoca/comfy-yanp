@@ -13,7 +13,7 @@ class YANPIdentity:
     RETURN_TYPES = (ANY,)
     RETURN_NAMES = ("output",)
     FUNCTION = "passthrough"
-    CATEGORY = "YANP/utils"
+    CATEGORY = "Comfy YANP/utils"
 
     @classmethod
     def VALIDATE_INPUTS(cls, **kwargs):
