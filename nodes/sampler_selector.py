@@ -11,11 +11,11 @@ class SamplerSelector:
 
     @classmethod
     def INPUT_TYPES(cls):
-        return {"required": {"sampler_name": (comfy.samplers.KSampler.SAMPLERS,)}}
+        return {"required": {"input-sampler": (comfy.samplers.KSampler.SAMPLERS,)}}
 
-    def select(self, sampler_name):
-        return (sampler_name,)
+    def select(self, **kwargs):
+        return (kwargs["input-sampler"],)
 
 
 NODE_CLASS_MAPPINGS = {"YANP_SamplerSelector": SamplerSelector}
-NODE_DISPLAY_NAME_MAPPINGS = {"YANP_SamplerSelector": "Sampler Selector"}
+NODE_DISPLAY_NAME_MAPPINGS = {"YANP_SamplerSelector": "Input - Sampler"}

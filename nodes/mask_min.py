@@ -1,7 +1,7 @@
 """Dynamic Mask Min: reduce every mask in every input batch to one mask."""
 import torch
 
-MAX_INPUTS = 64
+MAX_INPUTS = 8
 
 
 class MaskMin:
@@ -41,12 +41,11 @@ class MaskMin:
                     f"got {value.shape[1:]}"
                 )
 
-        # Reduce all batch items from all connected inputs into one [1,H,W] mask.
         result = torch.amin(values[0], dim=0, keepdim=True)
         for value in values[1:]:
             result = torch.minimum(result, torch.amin(value, dim=0, keepdim=True))
         return (result,)
-        
+
 
 NODE_CLASS_MAPPINGS = {"mask_min": MaskMin}
 NODE_DISPLAY_NAME_MAPPINGS = {"mask_min": "Mask Minimum"}
