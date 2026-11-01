@@ -38,5 +38,5 @@ class MaskMin:
         return (result,)
 
 
-NODE_CLASS_MAPPINGS = {"mask_minimum": MaskMin}
-NODE_DISPLAY_NAME_MAPPINGS = {"mask_minimum": "Mask Min"}
+NODE_CLASS_MAPPINGS = {"mask_min": MaskMin}
+NODE_DISPLAY_NAME_MAPPINGS = {"mask_min": "Mask Min"}
