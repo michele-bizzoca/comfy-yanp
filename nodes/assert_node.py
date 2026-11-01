@@ -17,7 +17,7 @@ class Assert:
     RETURN_TYPES = ()
     FUNCTION = "assert_condition"
     OUTPUT_NODE = True
-    CATEGORY = "YANP/utils"
+    CATEGORY = "Comfy YANP/utils"
 
     def assert_condition(self, condition, message):
         if not condition:
