@@ -4,7 +4,7 @@ import comfy.samplers
 
 
 class SchedulerSelector:
-    CATEGORY = "YANP/sampling"
+    CATEGORY = "YANP/input"
     FUNCTION = "select"
     RETURN_TYPES = (comfy.samplers.KSampler.SCHEDULERS,)
     RETURN_NAMES = ("scheduler",)

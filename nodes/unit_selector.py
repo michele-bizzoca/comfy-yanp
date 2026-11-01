@@ -13,7 +13,7 @@ class UnitSelector:
     RETURN_TYPES = ("FLOAT",)
     RETURN_NAMES = ("value",)
     FUNCTION = "select"
-    CATEGORY = "utils"
+    CATEGORY = "YANP/input"
 
     def select(self, value):
         return (float(value),)
