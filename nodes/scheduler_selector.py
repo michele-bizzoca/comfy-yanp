@@ -11,10 +11,10 @@ class SchedulerSelector:
 
     @classmethod
     def INPUT_TYPES(cls):
-        return {"required": {"scheduler": (comfy.samplers.KSampler.SCHEDULERS,)}}
+        return {"required": {"input-scheduler": (comfy.samplers.KSampler.SCHEDULERS,)}}
 
-    def select(self, scheduler):
-        return (scheduler,)
+    def select(self, **kwargs):
+        return (kwargs["input-scheduler"],)
 
 
 NODE_CLASS_MAPPINGS = {"YANP_SchedulerSelector": SchedulerSelector}
