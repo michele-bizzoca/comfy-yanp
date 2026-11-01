@@ -10,7 +10,7 @@ class MaskMajority:
     RETURN_TYPES = ("MASK", "MASK", "MASK")
     RETURN_NAMES = ("yes", "no", "maybe")
     FUNCTION = "run"
-    CATEGORY = "YANP / Masks"
+    CATEGORY = "YANP/masks"
 
     @classmethod
     def INPUT_TYPES(cls):
