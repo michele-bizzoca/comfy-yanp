@@ -1,0 +1,428 @@
+{
+  "nodes": [
+    {
+      "id": 2,
+      "type": "6937d48b-2244-4c2c-8414-474e525e00f2",
+      "pos": [
+        3730.7408084705758,
+        684.9329518047645
+      ],
+      "size": [
+        253.34168593045615,
+        82.67084296522785
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "name": "mask",
+          "shape": 7,
+          "type": "MASK",
+          "link": null
+        },
+        {
+          "name": "background-color",
+          "type": "INT",
+          "link": null,
+          "shape": 7
+        }
+      ],
+      "outputs": [
+        {
+          "label": "image",
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": null
+        }
+      ],
+      "title": "Apply Foreground Mask",
+      "properties": {
+        "previewExposures": []
+      }
+    }
+  ],
+  "groups": [],
+  "reroutes": [],
+  "links": [],
+  "definitions": {
+    "subgraphs": [
+      {
+        "id": "6937d48b-2244-4c2c-8414-474e525e00f2",
+        "version": 1,
+        "state": {
+          "lastGroupId": 0,
+          "lastNodeId": 4,
+          "lastLinkId": 8,
+          "lastRerouteId": 0
+        },
+        "revision": 0,
+        "config": {},
+        "name": "Apply Foreground Mask",
+        "inputNode": {
+          "id": -10,
+          "bounding": [
+            3728.8772924124596,
+            927.1937969259131,
+            128,
+            88
+          ]
+        },
+        "outputNode": {
+          "id": -20,
+          "bounding": [
+            4822.275750230983,
+            928.9700563538419,
+            128,
+            68
+          ]
+        },
+        "inputs": [
+          {
+            "id": "3ae30be3-3988-4188-9142-cb15064140df",
+            "name": "image",
+            "type": "IMAGE",
+            "linkIds": [
+              1,
+              2
+            ],
+            "pos": [
+              3832.8772924124596,
+              951.1937969259131
+            ]
+          },
+          {
+            "id": "31a6f2ff-ad00-4bd4-9f9a-0dc4000cc9c6",
+            "name": "mask",
+            "type": "MASK",
+            "linkIds": [
+              6
+            ],
+            "pos": [
+              3832.8772924124596,
+              971.1937969259131
+            ]
+          },
+          {
+            "id": "56b9cea7-fa16-4f32-ba54-bf5999643afa",
+            "name": "background-color",
+            "type": "INT",
+            "linkIds": [
+              8
+            ],
+            "pos": [
+              3832,
+              991
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "id": "2609ac2f-0a55-4878-8ee9-6471a716c359",
+            "name": "IMAGE",
+            "type": "IMAGE",
+            "linkIds": [
+              7
+            ],
+            "label": "image",
+            "pos": [
+              4846.275750230983,
+              952.9700563538419
+            ]
+          }
+        ],
+        "widgets": [],
+        "nodes": [
+          {
+            "id": 1,
+            "type": "ImageCompositeMasked",
+            "pos": [
+              4476.113536527303,
+              918.495997120799
+            ],
+            "size": [
+              271.6666625976562,
+              146
+            ],
+            "flags": {},
+            "order": 1,
+            "mode": 0,
+            "inputs": [
+              {
+                "localized_name": "destination",
+                "name": "destination",
+                "type": "IMAGE",
+                "link": 5
+              },
+              {
+                "localized_name": "source",
+                "name": "source",
+                "type": "IMAGE",
+                "link": 2
+              },
+              {
+                "localized_name": "mask",
+                "name": "mask",
+                "shape": 7,
+                "type": "MASK",
+                "link": 6
+              },
+              {
+                "localized_name": "x",
+                "name": "x",
+                "type": "INT",
+                "widget": {
+                  "name": "x"
+                },
+                "link": null
+              },
+              {
+                "localized_name": "y",
+                "name": "y",
+                "type": "INT",
+                "widget": {
+                  "name": "y"
+                },
+                "link": null
+              },
+              {
+                "localized_name": "resize_source",
+                "name": "resize_source",
+                "type": "BOOLEAN",
+                "widget": {
+                  "name": "resize_source"
+                },
+                "link": null
+              }
+            ],
+            "outputs": [
+              {
+                "localized_name": "IMAGE",
+                "name": "IMAGE",
+                "type": "IMAGE",
+                "links": [
+                  7
+                ]
+              }
+            ],
+            "properties": {
+              "Node name for S&R": "ImageCompositeMasked"
+            },
+            "widgets_values": [
+              0,
+              0,
+              false
+            ],
+            "widgets_values_named": {
+              "x": 0,
+              "y": 0,
+              "resize_source": false
+            }
+          },
+          {
+            "id": 3,
+            "type": "GetImageSize",
+            "pos": [
+              3919.224107916027,
+              795.6949755693536
+            ],
+            "size": [
+              202.8936342412453,
+              106.10608560311289
+            ],
+            "flags": {},
+            "order": 2,
+            "mode": 0,
+            "inputs": [
+              {
+                "localized_name": "image",
+                "name": "image",
+                "type": "IMAGE",
+                "link": 1
+              }
+            ],
+            "outputs": [
+              {
+                "localized_name": "width",
+                "name": "width",
+                "type": "INT",
+                "links": [
+                  3
+                ]
+              },
+              {
+                "localized_name": "height",
+                "name": "height",
+                "type": "INT",
+                "links": [
+                  4
+                ]
+              },
+              {
+                "localized_name": "batch_size",
+                "name": "batch_size",
+                "type": "INT",
+                "links": null
+              }
+            ],
+            "properties": {
+              "Node name for S&R": "GetImageSize"
+            }
+          },
+          {
+            "id": 4,
+            "type": "EmptyImage",
+            "pos": [
+              4200.466277314025,
+              772.7438363956511
+            ],
+            "size": [
+              227.6151595330739,
+              130
+            ],
+            "flags": {},
+            "order": 0,
+            "mode": 0,
+            "inputs": [
+              {
+                "localized_name": "width",
+                "name": "width",
+                "type": "INT",
+                "widget": {
+                  "name": "width"
+                },
+                "link": 3
+              },
+              {
+                "localized_name": "height",
+                "name": "height",
+                "type": "INT",
+                "widget": {
+                  "name": "height"
+                },
+                "link": 4
+              },
+              {
+                "localized_name": "batch_size",
+                "name": "batch_size",
+                "type": "INT",
+                "widget": {
+                  "name": "batch_size"
+                },
+                "link": null
+              },
+              {
+                "localized_name": "color",
+                "name": "color",
+                "type": "INT",
+                "widget": {
+                  "name": "color"
+                },
+                "link": 8
+              }
+            ],
+            "outputs": [
+              {
+                "localized_name": "IMAGE",
+                "name": "IMAGE",
+                "type": "IMAGE",
+                "links": [
+                  5
+                ]
+              }
+            ],
+            "properties": {
+              "Node name for S&R": "EmptyImage"
+            },
+            "widgets_values": [
+              512,
+              512,
+              1,
+              16777215
+            ],
+            "widgets_values_named": {
+              "width": 512,
+              "height": 512,
+              "batch_size": 1,
+              "color": 16777215
+            }
+          }
+        ],
+        "groups": [],
+        "links": [
+          {
+            "id": 1,
+            "origin_id": -10,
+            "origin_slot": 0,
+            "target_id": 3,
+            "target_slot": 0,
+            "type": "IMAGE"
+          },
+          {
+            "id": 2,
+            "origin_id": -10,
+            "origin_slot": 0,
+            "target_id": 1,
+            "target_slot": 1,
+            "type": "IMAGE"
+          },
+          {
+            "id": 3,
+            "origin_id": 3,
+            "origin_slot": 0,
+            "target_id": 4,
+            "target_slot": 0,
+            "type": "INT"
+          },
+          {
+            "id": 4,
+            "origin_id": 3,
+            "origin_slot": 1,
+            "target_id": 4,
+            "target_slot": 1,
+            "type": "INT"
+          },
+          {
+            "id": 5,
+            "origin_id": 4,
+            "origin_slot": 0,
+            "target_id": 1,
+            "target_slot": 0,
+            "type": "IMAGE"
+          },
+          {
+            "id": 6,
+            "origin_id": -10,
+            "origin_slot": 1,
+            "target_id": 1,
+            "target_slot": 2,
+            "type": "MASK"
+          },
+          {
+            "id": 7,
+            "origin_id": 1,
+            "origin_slot": 0,
+            "target_id": -20,
+            "target_slot": 0,
+            "type": "IMAGE"
+          },
+          {
+            "id": 8,
+            "origin_id": -10,
+            "origin_slot": 2,
+            "target_id": 4,
+            "target_slot": 3,
+            "type": "INT"
+          }
+        ],
+        "extra": {},
+        "category": "Comfy Manga Rework"
+      }
+    ]
+  }
+}
