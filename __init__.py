@@ -1,76 +1,76 @@
-from .embedding_loader import (
+from .nodes.embedding_loader import (
     NODE_CLASS_MAPPINGS as EMBEDDING_LOADER_CLASS_MAPPINGS,
     NODE_DISPLAY_NAME_MAPPINGS as EMBEDDING_LOADER_DISPLAY_NAME_MAPPINGS,
 )
-from .identity import (
+from .nodes.identity import (
     NODE_CLASS_MAPPINGS as IDENTITY_CLASS_MAPPINGS,
     NODE_DISPLAY_NAME_MAPPINGS as IDENTITY_DISPLAY_NAME_MAPPINGS,
 )
-from .simple_switch import (
+from .nodes.simple_switch import (
     NODE_CLASS_MAPPINGS as SIMPLE_SWITCH_CLASS_MAPPINGS,
     NODE_DISPLAY_NAME_MAPPINGS as SIMPLE_SWITCH_DISPLAY_NAME_MAPPINGS,
 )
-from .simple_block import (
+from .nodes.simple_block import (
     NODE_CLASS_MAPPINGS as SIMPLE_BLOCK_CLASS_MAPPINGS,
     NODE_DISPLAY_NAME_MAPPINGS as SIMPLE_BLOCK_DISPLAY_NAME_MAPPINGS,
 )
-from .stateful_multiline import (
+from .nodes.stateful_multiline import (
     NODE_CLASS_MAPPINGS as STATEFUL_MULTILINE_CLASS_MAPPINGS,
     NODE_DISPLAY_NAME_MAPPINGS as STATEFUL_MULTILINE_DISPLAY_NAME_MAPPINGS,
 )
-from .simple_latch import (
+from .nodes.simple_latch import (
     NODE_CLASS_MAPPINGS as SIMPLE_LATCH_CLASS_MAPPINGS,
     NODE_DISPLAY_NAME_MAPPINGS as SIMPLE_LATCH_DISPLAY_NAME_MAPPINGS,
 )
-from .smart_seed import (
+from .nodes.smart_seed import (
     NODE_CLASS_MAPPINGS as SMART_SEED_CLASS_MAPPINGS,
     NODE_DISPLAY_NAME_MAPPINGS as SMART_SEED_DISPLAY_NAME_MAPPINGS,
 )
 
-from .natural_selector import (
+from .nodes.natural_selector import (
     NODE_CLASS_MAPPINGS as NATURAL_SELECTOR_CLASS_MAPPINGS,
     NODE_DISPLAY_NAME_MAPPINGS as NATURAL_SELECTOR_DISPLAY_NAME_MAPPINGS,
 )
 
-from .unit_selector import (
+from .nodes.unit_selector import (
     NODE_CLASS_MAPPINGS as UNIT_SELECTOR_CLASS_MAPPINGS,
     NODE_DISPLAY_NAME_MAPPINGS as UNIT_SELECTOR_DISPLAY_NAME_MAPPINGS,
 )
 
-from .concat_strings import (
+from .nodes.concat_strings import (
     NODE_CLASS_MAPPINGS as CONCAT_STRINGS_CLASS_MAPPINGS,
     NODE_DISPLAY_NAME_MAPPINGS as CONCAT_STRINGS_DISPLAY_NAME_MAPPINGS,
 )
 
-from .lora_loader import (
+from .nodes.lora_loader import (
     NODE_CLASS_MAPPINGS as LORA_LOADER_CLASS_MAPPINGS,
     NODE_DISPLAY_NAME_MAPPINGS as LORA_LOADER_DISPLAY_NAME_MAPPINGS,
 )
 
-from .assert_node import (
+from .nodes.assert_node import (
     NODE_CLASS_MAPPINGS as ASSERT_NODE_CLASS_MAPPINGS,
     NODE_DISPLAY_NAME_MAPPINGS as ASSERT_NODE_DISPLAY_NAME_MAPPINGS,
 )
 
-from .sampler_selector import (
+from .nodes.sampler_selector import (
     NODE_CLASS_MAPPINGS as SAMPLER_SELECTOR_CLASS_MAPPINGS,
     NODE_DISPLAY_NAME_MAPPINGS as SAMPLER_SELECTOR_DISPLAY_NAME_MAPPINGS,
 )
 
-from .scheduler_selector import (
+from .nodes.scheduler_selector import (
     NODE_CLASS_MAPPINGS as SCHEDULER_SELECTOR_CLASS_MAPPINGS,
     NODE_DISPLAY_NAME_MAPPINGS as SCHEDULER_SELECTOR_DISPLAY_NAME_MAPPINGS,
 )
 
-from .mask_min import (
+from .nodes.mask_min import (
     NODE_CLASS_MAPPINGS as MASK_MIN_CLASS_MAPPINGS,
     NODE_DISPLAY_NAME_MAPPINGS as MASK_MIN_DISPLAY_NAME_MAPPINGS,
 )
-from .mask_max import (
+from .nodes.mask_max import (
     NODE_CLASS_MAPPINGS as MASK_MAX_CLASS_MAPPINGS,
     NODE_DISPLAY_NAME_MAPPINGS as MASK_MAX_DISPLAY_NAME_MAPPINGS,
 )
-from .mask_majority import (
+from .nodes.mask_majority import (
     NODE_CLASS_MAPPINGS as MASK_MAJORITY_CLASS_MAPPINGS,
     NODE_DISPLAY_NAME_MAPPINGS as MASK_MAJORITY_DISPLAY_NAME_MAPPINGS,
 )
