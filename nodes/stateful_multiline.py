@@ -16,7 +16,7 @@ class StatefulMultiline:
     RETURN_TYPES = ("STRING",)
     RETURN_NAMES = ("text",)
     FUNCTION = "get_text"
-    CATEGORY = "YANP/input"
+    CATEGORY = "Comfy YANP/input"
 
     def get_text(self, Text=""):
         return (Text,)

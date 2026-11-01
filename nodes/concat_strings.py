@@ -26,7 +26,7 @@ class YANPStringConcatenate:
     RETURN_TYPES = ("STRING",)
     RETURN_NAMES = ("string",)
     FUNCTION = "concatenate"
-    CATEGORY = "YANP/text"
+    CATEGORY = "Comfy YANP/text"
 
     def concatenate(self, string_1, separator="", **kwargs):
         values = [string_1]

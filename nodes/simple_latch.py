@@ -28,7 +28,7 @@ class MemoryLatch:
     RETURN_TYPES = (ANY,)
     RETURN_NAMES = ("output",)
     FUNCTION = "latch"
-    CATEGORY = "YANP/circuits"
+    CATEGORY = "Comfy YANP/circuits"
 
     @classmethod
     def VALIDATE_INPUTS(cls, **kwargs):
