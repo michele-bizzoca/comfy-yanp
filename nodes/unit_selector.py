@@ -24,5 +24,5 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "YANP_UnitSelector": "Input Unit",
+    "YANP_UnitSelector": "Input - Unit",
 }

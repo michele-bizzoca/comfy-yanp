@@ -18,4 +18,4 @@ class SamplerSelector:
 
 
 NODE_CLASS_MAPPINGS = {"YANP_SamplerSelector": SamplerSelector}
-NODE_DISPLAY_NAME_MAPPINGS = {"YANP_SamplerSelector": "Sampler Selector"}
+NODE_DISPLAY_NAME_MAPPINGS = {"YANP_SamplerSelector": "Input - Sampler"}

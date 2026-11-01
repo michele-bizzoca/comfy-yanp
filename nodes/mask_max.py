@@ -1,7 +1,7 @@
 """Dynamic Mask Max: reduce every mask in every input batch to one mask."""
 import torch
 
-MAX_INPUTS = 64
+MAX_INPUTS = 8
 
 
 class MaskMax:
@@ -41,7 +41,6 @@ class MaskMax:
                     f"got {value.shape[1:]}"
                 )
 
-        # Reduce all batch items from all connected inputs into one [1,H,W] mask.
         result = torch.amax(values[0], dim=0, keepdim=True)
         for value in values[1:]:
             result = torch.maximum(result, torch.amax(value, dim=0, keepdim=True))

@@ -18,4 +18,4 @@ class SchedulerSelector:
 
 
 NODE_CLASS_MAPPINGS = {"YANP_SchedulerSelector": SchedulerSelector}
-NODE_DISPLAY_NAME_MAPPINGS = {"YANP_SchedulerSelector": "Scheduler Selector"}
+NODE_DISPLAY_NAME_MAPPINGS = {"YANP_SchedulerSelector": "Input - Scheduler"}
