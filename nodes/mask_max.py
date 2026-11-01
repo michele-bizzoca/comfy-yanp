@@ -8,7 +8,7 @@ class MaskMax:
     RETURN_TYPES = ("MASK",)
     RETURN_NAMES = ("mask",)
     FUNCTION = "run"
-    CATEGORY = "YANP / Masks"
+    CATEGORY = "YANP/masks"
 
     @classmethod
     def INPUT_TYPES(cls):
