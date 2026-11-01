@@ -49,4 +49,4 @@ class MaskMax:
 
 
 NODE_CLASS_MAPPINGS = {"mask_max": MaskMax}
-NODE_DISPLAY_NAME_MAPPINGS = {"mask_max": "Mask Max"}
+NODE_DISPLAY_NAME_MAPPINGS = {"mask_max": "Mask Maximum"}
