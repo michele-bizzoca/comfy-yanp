@@ -27,7 +27,7 @@ class SmartSeed:
     RETURN_TYPES = ("INT",)
     RETURN_NAMES = ("seed",)
     FUNCTION = "generate"
-    CATEGORY = "YANP/utils"
+    CATEGORY = "Comfy YANP/utils"
 
     # Keep the node active even if its output is not connected, so a newly
     # generated random seed can always be sent back to the visible Seed field.
