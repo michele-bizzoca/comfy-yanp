@@ -19,7 +19,7 @@ class ApplyContourMask:
             }
         }
 
-    def run(self, image, mask, background_color="black"):
+    def run(self, image, mask, background_color="white"):
         background = _make_background(image, background_color)
         alpha = _prepare_mask(mask, image)
         result = image * (1.0 - alpha) + background * alpha
