@@ -8,7 +8,7 @@ class MaskMin:
     RETURN_TYPES = ("MASK",)
     RETURN_NAMES = ("mask",)
     FUNCTION = "run"
-    CATEGORY = "Comfy YAMP"
+    CATEGORY = "YAMP / Max"
 
     @classmethod
     def INPUT_TYPES(cls):
