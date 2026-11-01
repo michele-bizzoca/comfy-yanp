@@ -46,23 +46,25 @@ function removeMaskInput(node, name) {
   refreshNode(node);
 }
 
-function normalizeMaskInputs(node) {
+function ensureMinimumMaskInputs(node) {
   if (!node.inputs) return;
-  const masks = maskInputs(node);
-
-  // Keep only the first two inputs on a newly created or legacy-configured node.
-  for (let i = masks.length - 1; i >= MIN_INPUTS; --i) {
-    const index = node.inputs.indexOf(masks[i]);
-    if (index >= 0) node.removeInput(index);
-  }
-
-  // Ensure two visible inputs, then normalize their names.
   while (maskInputs(node).length < MIN_INPUTS) {
     const next = maskInputs(node).length + 1;
     node.addInput(`mask_${next}`, "MASK");
   }
   renumberMaskInputs(node);
   refreshNode(node);
+}
+
+function initializeNewNodeInputs(node) {
+  if (!node.inputs) return;
+  const masks = maskInputs(node);
+  // INPUT_TYPES declares all possible sockets; a new node starts with two visible.
+  for (let i = masks.length - 1; i >= MIN_INPUTS; --i) {
+    const index = node.inputs.indexOf(masks[i]);
+    if (index >= 0) node.removeInput(index);
+  }
+  ensureMinimumMaskInputs(node);
 }
 
 function ensureAddButton(node) {
@@ -83,7 +85,7 @@ app.registerExtension({
     const onNodeCreated = nodeType.prototype.onNodeCreated;
     nodeType.prototype.onNodeCreated = function (...args) {
       const result = onNodeCreated?.apply(this, args);
-      normalizeMaskInputs(this);
+      initializeNewNodeInputs(this);
       ensureAddButton(this);
       return result;
     };
@@ -92,7 +94,7 @@ app.registerExtension({
     nodeType.prototype.onConfigure = function (...args) {
       const result = onConfigure?.apply(this, args);
       queueMicrotask(() => {
-        normalizeMaskInputs(this);
+        ensureMinimumMaskInputs(this);
         ensureAddButton(this);
       });
       return result;
@@ -116,7 +118,7 @@ app.registerExtension({
   loadedGraphNode(node) {
     if (node.comfyClass === NODE_TYPE || node.type === NODE_TYPE) {
       queueMicrotask(() => {
-        normalizeMaskInputs(node);
+        ensureMinimumMaskInputs(node);
         ensureAddButton(node);
       });
     }
