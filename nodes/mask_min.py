@@ -1,7 +1,7 @@
-"""Mask Min node migrated from Comfy Manga Rework."""
+"""Dynamic Mask Min node migrated from Comfy Manga Rework."""
 import torch
 
-MAX_INPUTS = 4
+MAX_INPUTS = 64
 
 
 class MaskMin:
@@ -12,12 +12,21 @@ class MaskMin:
 
     @classmethod
     def INPUT_TYPES(cls):
-        return {"optional": {f"mask_{i}": ("MASK",) for i in range(1, MAX_INPUTS + 1)}}
+        return {
+            "required": {"mask_1": ("MASK",)},
+            "optional": {f"mask_{i}": ("MASK",) for i in range(2, MAX_INPUTS + 1)},
+        }
 
-    def run(self, mask_1=None, mask_2=None, mask_3=None, mask_4=None):
-        values = [value for value in (mask_1, mask_2, mask_3, mask_4) if value is not None]
-        if not values:
-            raise ValueError("Mask Min requires at least one connected mask")
+    def run(self, mask_1, **kwargs):
+        values = [mask_1]
+        values.extend(
+            kwargs[name]
+            for name in sorted(
+                (key for key, value in kwargs.items()
+                 if key.startswith("mask_") and value is not None),
+                key=lambda key: int(key.split("_", 1)[1]),
+            )
+        )
         if any(not isinstance(value, torch.Tensor) or value.ndim != 3 for value in values):
             raise ValueError("Mask Min requires [B,H,W] MASK tensors")
         shape = values[0].shape
@@ -29,5 +38,5 @@ class MaskMin:
         return (result,)
 
 
-NODE_CLASS_MAPPINGS = {"mask_min": MaskMin}
-NODE_DISPLAY_NAME_MAPPINGS = {"mask_min": "Mask Min"}
+NODE_CLASS_MAPPINGS = {"mask_minimum": MaskMin}
+NODE_DISPLAY_NAME_MAPPINGS = {"mask_minimum": "Mask Min"}
