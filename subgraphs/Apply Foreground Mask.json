@@ -44,7 +44,7 @@
       "title": "Apply Foreground Mask",
       "properties": {
         "previewExposures": [],
-        "category": "Comfy YANP/masks"
+        "category": "YANP/Masks"
       }
     }
   ],
@@ -421,15 +421,10 @@
             "type": "INT"
           }
         ],
-<<<<<<< HEAD
-        "extra": {},
-        "category": "Comfy YANP / Masks"
-=======
         "extra": {
-          "category": "Comfy YANP/masks"
+          "category": "YANP/Masks"
         },
-        "category": "Comfy YANP/masks"
->>>>>>> dcbadd8cf0a71b10ef5cd5b270eec28aaee0f2a0
+        "category": "YANP/Masks"
       }
     ]
   },
