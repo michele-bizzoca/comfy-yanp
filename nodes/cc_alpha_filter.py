@@ -50,7 +50,7 @@ class CCAlphaFilter:
     RETURN_TYPES = ("MASK",)
     RETURN_NAMES = ("mask",)
     FUNCTION = "run"
-    CATEGORY = "YANP/Utils"
+    CATEGORY = "Comfy YANP/Utils"
 
     @classmethod
     def INPUT_TYPES(cls):
