@@ -25,6 +25,15 @@
           "shape": 7,
           "type": "MASK",
           "link": null
+        },
+        {
+          "name": "contour-color",
+          "type": "INT",
+          "link": null,
+          "widget": {
+            "name": "contour-color"
+          },
+          "label": "Background Color"
         }
       ],
       "outputs": [
@@ -37,16 +46,13 @@
       ],
       "title": "Apply Contour Mask",
       "properties": {
-        "previewExposures": [],
-        "Node name for S&R": "Apply Contour Mask",
-        "cnr_id": "comfy-yanp",
-        "category": "Comfy YANP / masks"
+        "previewExposures": []
       },
       "widgets_values": [
-        "white"
+        0
       ],
       "widgets_values_named": {
-        "background-color": "white"
+        "contour-color": 0
       }
     }
   ],
@@ -110,6 +116,19 @@
               3832.8772924124596,
               971.1937969259131
             ]
+          },
+          {
+            "id": "f06286ad-d5b6-48fa-bdc6-0fcb00eca2d9",
+            "name": "contour-color",
+            "type": "INT",
+            "linkIds": [
+              8
+            ],
+            "pos": [
+              3832,
+              991
+            ],
+            "label": "Background Color"
           }
         ],
         "outputs": [
@@ -127,12 +146,7 @@
             ]
           }
         ],
-        "widgets": [
-          {
-            "id": 5,
-            "name": "background-color"
-          }
-        ],
+        "widgets": [],
         "nodes": [
           {
             "id": 1,
@@ -159,7 +173,7 @@
                 "localized_name": "source",
                 "name": "source",
                 "type": "IMAGE",
-                "link": 11
+                "link": 5
               },
               {
                 "localized_name": "mask",
@@ -311,6 +325,15 @@
                   "name": "batch_size"
                 },
                 "link": null
+              },
+              {
+                "localized_name": "color",
+                "name": "color",
+                "type": "INT",
+                "widget": {
+                  "name": "color"
+                },
+                "link": 8
               }
             ],
             "outputs": [
@@ -318,7 +341,9 @@
                 "localized_name": "IMAGE",
                 "name": "IMAGE",
                 "type": "IMAGE",
-                "links": []
+                "links": [
+                  5
+                ]
               }
             ],
             "properties": {
@@ -327,62 +352,14 @@
             "widgets_values": [
               512,
               512,
-              1
+              1,
+              0
             ],
             "widgets_values_named": {
               "width": 512,
               "height": 512,
-              "batch_size": 1
-            }
-          },
-          {
-            "id": 5,
-            "type": "YANPMaskBackground",
-            "pos": [
-              4200.5,
-              610
-            ],
-            "size": [
-              260,
-              90
-            ],
-            "flags": {},
-            "order": 0,
-            "mode": 0,
-            "inputs": [
-              {
-                "name": "image",
-                "type": "IMAGE",
-                "link": 9
-              },
-              {
-                "name": "background-color",
-                "type": "COMBO",
-                "widget": {
-                  "name": "background-color"
-                },
-                "link": null
-              }
-            ],
-            "outputs": [
-              {
-                "name": "background",
-                "type": "IMAGE",
-                "links": [
-                  11
-                ]
-              }
-            ],
-            "properties": {
-              "Node name for S&R": "YANPMaskBackground",
-              "cnr_id": "comfy-yanp",
-              "category": "Comfy YANP / masks"
-            },
-            "widgets_values": [
-              "white"
-            ],
-            "widgets_values_named": {
-              "background-color": "white"
+              "batch_size": 1,
+              "color": 0
             }
           }
         ],
@@ -421,6 +398,14 @@
             "type": "INT"
           },
           {
+            "id": 5,
+            "origin_id": 4,
+            "origin_slot": 0,
+            "target_id": 1,
+            "target_slot": 1,
+            "type": "IMAGE"
+          },
+          {
             "id": 6,
             "origin_id": -10,
             "origin_slot": 1,
@@ -437,26 +422,16 @@
             "type": "IMAGE"
           },
           {
-            "id": 9,
+            "id": 8,
             "origin_id": -10,
-            "origin_slot": 0,
-            "target_id": 5,
-            "target_slot": 0,
-            "type": "IMAGE"
-          },
-          {
-            "id": 11,
-            "origin_id": 5,
-            "origin_slot": 0,
-            "target_id": 1,
-            "target_slot": 1,
-            "type": "IMAGE"
+            "origin_slot": 2,
+            "target_id": 4,
+            "target_slot": 3,
+            "type": "INT"
           }
         ],
-        "extra": {
-          "category": "Comfy YANP / masks"
-        },
-        "category": "Comfy YANP / masks"
+        "extra": {},
+        "category": "Comfy Manga Rework"
       }
     ]
   }
