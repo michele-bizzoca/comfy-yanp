@@ -3,7 +3,7 @@ from ._mask_background import _make_background
 
 
 class YANPMaskBackground:
-    CATEGORY = "Comfy YANP / masks"
+    CATEGORY = "Comfy YANP / Masks"
     FUNCTION = "run"
     RETURN_TYPES = ("IMAGE",)
     RETURN_NAMES = ("background",)
