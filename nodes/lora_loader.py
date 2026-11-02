@@ -49,7 +49,7 @@ class YANPLoraLoader:
     RETURN_TYPES = ('*',) * MAX_PAIRS
     RETURN_NAMES = tuple(f'io_{i}' for i in range(1, MAX_PAIRS + 1))
     FUNCTION = 'load'
-    CATEGORY = 'Comfy YANP/loaders'
+    CATEGORY = 'Comfy YANP/Loaders'
 
     @classmethod
     def VALIDATE_INPUTS(cls, **kwargs):
