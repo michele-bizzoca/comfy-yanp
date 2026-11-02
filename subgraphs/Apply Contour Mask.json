@@ -46,7 +46,8 @@
       ],
       "title": "Apply Contour Mask",
       "properties": {
-        "previewExposures": []
+        "previewExposures": [],
+        "category": "Comfy YANP/masks"
       },
       "widgets_values": [
         0
@@ -430,9 +431,23 @@
             "type": "INT"
           }
         ],
+<<<<<<< HEAD
         "extra": {},
         "category": "Comfy YANP / Masks"
+=======
+        "extra": {
+          "category": "Comfy YANP/masks"
+        },
+        "category": "Comfy YANP/masks"
+>>>>>>> dcbadd8cf0a71b10ef5cd5b270eec28aaee0f2a0
       }
     ]
-  }
+  },
+  "id": "35dde712-6995-4d73-aeb2-bfab33297d16",
+  "revision": 0,
+  "last_node_id": 2,
+  "last_link_id": 0,
+  "version": 0.4,
+  "config": {},
+  "extra": {}
 }
