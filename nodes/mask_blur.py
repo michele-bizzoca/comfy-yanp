@@ -1,4 +1,4 @@
-"""Resolution-normalized Gaussian mask blur, matching Impact Pack's Gaussian Blur Mask."""
+"""Resolution-normalized Gaussian blur for MASK tensors."""
 
 import torch
 import torch.nn.functional as F
@@ -15,17 +15,17 @@ class MaskBlur:
         return {
             "required": {
                 "mask": ("MASK",),
-                "kernel-at-1024-px": ("INT", {
+                "radius-at-1024-px": ("INT", {
                     "default": 10,
                     "min": 0,
                     "max": 1024,
                     "step": 1,
                 }),
-                "sigma": ("FLOAT", {
-                    "default": 10.0,
-                    "min": 0.1,
-                    "max": 100.0,
-                    "step": 0.1,
+                "fade": ("FLOAT", {
+                    "default": 1.0,
+                    "min": 0.0,
+                    "max": 1.0,
+                    "step": 0.01,
                 }),
             }
         }
@@ -44,34 +44,37 @@ class MaskBlur:
         if mask.shape[0] < 1 or mask.shape[1] < 1 or mask.shape[2] < 1:
             raise ValueError("Mask Blur requires nonempty [B,H,W] dimensions")
 
-        kernel_at_1024 = int(kwargs["kernel-at-1024-px"])
-        sigma = float(kwargs["sigma"])
-        if kernel_at_1024 < 0:
-            raise ValueError("kernel-at-1024-px must be nonnegative")
-        if not torch.isfinite(torch.tensor(sigma)) or sigma <= 0:
-            raise ValueError("sigma must be finite and greater than zero")
-        if kernel_at_1024 == 0:
+        radius_at_1024 = int(kwargs["radius-at-1024-px"])
+        fade = float(kwargs["fade"])
+        if radius_at_1024 < 0:
+            raise ValueError("radius-at-1024-px must be nonnegative")
+        if not torch.isfinite(torch.tensor(fade)) or not 0.0 <= fade <= 1.0:
+            raise ValueError("fade must be between 0 and 1")
+
+        if radius_at_1024 == 0 or fade == 0.0:
             return (mask,)
 
         height, width = mask.shape[-2:]
         short_edge = min(height, width)
-
-        # Impact Pack's kernel_size is a radius: the actual kernel width is
-        # 2 * kernel_size + 1. Scale that radius relative to a 1024 px short edge.
-        scaled_radius = int(round(kernel_at_1024 * short_edge / 1024.0))
-        if scaled_radius == 0:
+        radius = int(round(radius_at_1024 * short_edge / 1024.0))
+        if radius == 0:
             return (mask,)
 
-        kernel_size = 2 * scaled_radius + 1
+        kernel_size = 2 * radius + 1
 
-        # Match Impact Pack's safeguard for masks smaller than the requested kernel.
+        # Keep the filter valid for small masks, following Gaussian Blur Mask's
+        # small-image safeguard.
         if short_edge <= kernel_size:
             kernel_size = int(short_edge / 2)
             if kernel_size % 2 == 0:
                 kernel_size += 1
             if kernel_size < 3:
                 return (mask,)
-        radius = kernel_size // 2
+            radius = kernel_size // 2
+
+        # fade=1 gives the conventional Gaussian relation radius ~= 3*sigma.
+        # Lower fade narrows the Gaussian while preserving the kernel extent.
+        sigma = max((radius * fade) / 3.0, 1e-6)
 
         work_dtype = (
             torch.float32
@@ -83,8 +86,6 @@ class MaskBlur:
             kernel_size, sigma, mask.device, work_dtype
         )
 
-        # torchvision.transforms.GaussianBlur uses separable 1D Gaussian
-        # kernels. Apply the horizontal and vertical passes independently.
         horizontal = kernel.view(1, 1, 1, kernel_size)
         vertical = kernel.view(1, 1, kernel_size, 1)
 
