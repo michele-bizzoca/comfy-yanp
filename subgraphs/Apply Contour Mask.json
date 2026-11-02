@@ -27,7 +27,7 @@
           "link": null
         },
         {
-          "name": "contour-color",
+          "name": "background-color",
           "type": "COMBO",
           "link": null,
           "widget": {
