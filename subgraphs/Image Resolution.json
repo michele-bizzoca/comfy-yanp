@@ -29,7 +29,7 @@
           "links": null
         }
       ],
-      "title": "Image Resolution",
+      "title": "Image Edges",
       "properties": {
         "previewExposures": [],
         "category": "Comfy YANP/Utils"
@@ -52,7 +52,7 @@
         },
         "revision": 0,
         "config": {},
-        "name": "Image Resolution",
+        "name": "Image Edges",
         "inputNode": {
           "id": -10,
           "bounding": [
