@@ -345,14 +345,12 @@
             "widgets_values": [
               512,
               512,
-              1,
-              16777215
+              1
             ],
             "widgets_values_named": {
               "width": 512,
               "height": 512,
-              "batch_size": 1,
-              "color": 16777215
+              "batch_size": 1
             }
           },
           {
