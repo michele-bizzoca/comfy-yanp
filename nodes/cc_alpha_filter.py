@@ -57,7 +57,7 @@ class CCAlphaFilter:
         return {"required": {
             "mask": ("MASK",),
             "radius-at-1024-px": ("FLOAT", {
-                "default": 5.0, "min": 0.0, "max": 1024.0, "step": 0.1,
+                "default": 8.0, "min": 0.0, "max": 1024.0, "step": 0.1,
             }),
             "alpha-threshold": ("FLOAT", {
                 "default": 0.5, "min": 0.0, "max": 1.0, "step": 0.01,
