@@ -13,7 +13,7 @@ class NaturalSelector:
     RETURN_TYPES = ("INT",)
     RETURN_NAMES = ("value",)
     FUNCTION = "select"
-    CATEGORY = "Comfy YANP/input"
+    CATEGORY = "Comfy YANP/Input"
 
     def select(self, value):
         return (float(value),)
