@@ -41,7 +41,7 @@
       "properties": {
         "Node name for S&R": "Monochrome Image",
         "cnr_id": "comfy-yanp",
-        "category": "Comfy YANP/Utils",
+        "category": "YANP/Utils",
         "previewExposures": []
       },
       "widgets_values": [
@@ -900,10 +900,10 @@
           }
         ],
         "extra": {
-          "category": "Comfy YANP/Utils"
+          "category": "YANP/Utils"
         },
         "description": "Creates a solid RGB image matching the input dimensions. Open subgraph to choose color via CustomCombo.",
-        "category": "Comfy YANP/Utils"
+        "category": "YANP/Utils"
       }
     ]
   },
