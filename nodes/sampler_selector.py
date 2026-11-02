@@ -4,7 +4,7 @@ import comfy.samplers
 
 
 class SamplerSelector:
-    CATEGORY = "Comfy YANP/input"
+    CATEGORY = "Comfy YANP/Input"
     FUNCTION = "select"
     RETURN_TYPES = (comfy.samplers.KSampler.SAMPLERS,)
     RETURN_NAMES = ("sampler_name",)
