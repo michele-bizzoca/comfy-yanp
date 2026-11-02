@@ -54,7 +54,7 @@ class EmbeddingLoader:
     RETURN_TYPES = ('STRING',) * MAX_PAIRS
     RETURN_NAMES = ('prompt',) + tuple(f'prompt_{i}' for i in range(2, MAX_PAIRS + 1))
     FUNCTION = 'build'
-    CATEGORY = 'Comfy YANP/loaders'
+    CATEGORY = 'Comfy YANP/Loaders'
 
     @classmethod
     def VALIDATE_INPUTS(cls, **kwargs):
