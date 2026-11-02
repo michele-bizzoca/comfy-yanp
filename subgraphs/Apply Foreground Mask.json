@@ -43,7 +43,8 @@
       ],
       "title": "Apply Foreground Mask",
       "properties": {
-        "previewExposures": []
+        "previewExposures": [],
+        "category": "Comfy YANP/masks"
       }
     }
   ],
@@ -420,9 +421,18 @@
             "type": "INT"
           }
         ],
-        "extra": {},
-        "category": "Comfy Manga Rework"
+        "extra": {
+          "category": "Comfy YANP/masks"
+        },
+        "category": "Comfy YANP/masks"
       }
     ]
-  }
+  },
+  "id": "67a22be6-fb06-431c-87d0-19db2bdabe2c",
+  "revision": 0,
+  "last_node_id": 2,
+  "last_link_id": 0,
+  "version": 0.4,
+  "config": {},
+  "extra": {}
 }
