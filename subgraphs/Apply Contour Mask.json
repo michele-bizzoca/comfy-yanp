@@ -25,15 +25,6 @@
           "shape": 7,
           "type": "MASK",
           "link": null
-        },
-        {
-          "name": "background-color",
-          "type": "COMBO",
-          "link": null,
-          "widget": {
-            "name": "background-color"
-          },
-          "label": "Background"
         }
       ],
       "outputs": [
@@ -119,19 +110,6 @@
               3832.8772924124596,
               971.1937969259131
             ]
-          },
-          {
-            "id": "f06286ad-d5b6-48fa-bdc6-0fcb00eca2d9",
-            "name": "background-color",
-            "type": "COMBO",
-            "linkIds": [
-              10
-            ],
-            "pos": [
-              3832,
-              991
-            ],
-            "label": "Background"
           }
         ],
         "outputs": [
@@ -149,7 +127,12 @@
             ]
           }
         ],
-        "widgets": [],
+        "widgets": [
+          {
+            "id": 5,
+            "name": "background-color"
+          }
+        ],
         "nodes": [
           {
             "id": 1,
@@ -378,7 +361,7 @@
                 "widget": {
                   "name": "background-color"
                 },
-                "link": 10
+                "link": null
               }
             ],
             "outputs": [
@@ -460,14 +443,6 @@
             "target_id": 5,
             "target_slot": 0,
             "type": "IMAGE"
-          },
-          {
-            "id": 10,
-            "origin_id": -10,
-            "origin_slot": 2,
-            "target_id": 5,
-            "target_slot": 1,
-            "type": "COMBO"
           },
           {
             "id": 11,
