@@ -551,10 +551,10 @@
               "Node name for S&R": "ComfyMathExpression"
             },
             "widgets_values": [
-              "((b if f == 0 else sqrt((b * 1024 * 1024) / (d * e))) if b > 0 else c) / (c if a else 1)"
+              "((b if f == 0 else sqrt((b * 1000000) / (d * e))) if b > 0 else c) / (c if a else 1)"
             ],
             "widgets_values_named": {
-              "expression": "((b if f == 0 else sqrt((b * 1024 * 1024) / (d * e))) if b > 0 else c) / (c if a else 1)"
+              "expression": "((b if f == 0 else sqrt((b * 1000000) / (d * e))) if b > 0 else c) / (c if a else 1)"
             }
           },
           {

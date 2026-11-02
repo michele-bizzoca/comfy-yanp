@@ -550,10 +550,10 @@
               "cnr_id": "comfy-core"
             },
             "widgets_values": [
-              "(e / (d if b == 1 or b == 2 and d < c else c) if e > 0 else f) / (f if a else 1)"
+              "(e / (d if b == 1 or b == 2 and d < c or b == 3 and d > c else c) if e > 0 else f) / (f if a else 1)"
             ],
             "widgets_values_named": {
-              "expression": "(e / (d if b == 1 or b == 2 and d < c else c) if e > 0 else f) / (f if a else 1)"
+              "expression": "(e / (d if b == 1 or b == 2 and d < c or b == 3 and d > c else c) if e > 0 else f) / (f if a else 1)"
             }
           },
           {
