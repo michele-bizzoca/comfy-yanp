@@ -63,7 +63,7 @@ class CCAlphaFilter:
                 "default": 0.5, "min": 0.0, "max": 1.0, "step": 0.01,
             }),
             "area-threshold-at-1024-px": ("FLOAT", {
-                "default": 1024.0, "min": 0.0, "max": 10737418240.0, "step": 1.0,
+                "default": 64.0, "min": 0.0, "max": 10737418240.0, "step": 1.0,
             }),
         }}
 
