@@ -287,8 +287,8 @@
             "type": "INT"
           }
         ],
-        "extra": {},
-        "description": "Width and height."
+        "extra": {},,
+        "category": "Comfy YANP / utils"
       }
     ]
   }
