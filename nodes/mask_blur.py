@@ -1,4 +1,4 @@
-"""Resolution-normalized Gaussian blur for MASK tensors."""
+"""Resolution-normalized Gaussian mask blur, matching Impact Pack's Gaussian Blur Mask."""
 
 import torch
 import torch.nn.functional as F
@@ -16,19 +16,27 @@ class MaskBlur:
             "required": {
                 "mask": ("MASK",),
                 "kernel-at-1024-px": ("INT", {
-                    "default": 3,
-                    "min": 1,
-                    "max": 255,
-                    "step": 2,
+                    "default": 10,
+                    "min": 0,
+                    "max": 1024,
+                    "step": 1,
                 }),
                 "sigma": ("FLOAT", {
-                    "default": 1.0,
+                    "default": 10.0,
                     "min": 0.1,
                     "max": 100.0,
                     "step": 0.1,
                 }),
             }
         }
+
+    @staticmethod
+    def _gaussian_kernel1d(kernel_size, sigma, device, dtype):
+        coords = torch.arange(
+            kernel_size, device=device, dtype=dtype
+        ) - kernel_size // 2
+        kernel = torch.exp(-(coords * coords) / (2.0 * sigma * sigma))
+        return kernel / kernel.sum()
 
     def run(self, mask, **kwargs):
         if not isinstance(mask, torch.Tensor) or mask.ndim != 3:
@@ -38,35 +46,57 @@ class MaskBlur:
 
         kernel_at_1024 = int(kwargs["kernel-at-1024-px"])
         sigma = float(kwargs["sigma"])
-        if kernel_at_1024 < 1:
-            raise ValueError("kernel-at-1024-px must be at least 1")
+        if kernel_at_1024 < 0:
+            raise ValueError("kernel-at-1024-px must be nonnegative")
         if not torch.isfinite(torch.tensor(sigma)) or sigma <= 0:
             raise ValueError("sigma must be finite and greater than zero")
-
-        short_edge = min(mask.shape[-2:])
-        scaled_kernel = max(1, int(round(kernel_at_1024 * short_edge / 1024.0)))
-        # A centered Gaussian kernel must have an odd number of samples.
-        if scaled_kernel % 2 == 0:
-            scaled_kernel += 1
-        if scaled_kernel == 1:
+        if kernel_at_1024 == 0:
             return (mask,)
 
-        device = mask.device
-        dtype = torch.float32 if mask.dtype in (torch.float16, torch.bfloat16) else mask.dtype
-        coords = torch.linspace(-1.0, 1.0, scaled_kernel, device=device, dtype=dtype)
-        yy, xx = torch.meshgrid(coords, coords, indexing="ij")
-        distance_squared = xx.square() + yy.square()
-        kernel = torch.exp(-distance_squared / (2.0 * sigma * sigma))
-        kernel = kernel / kernel.sum()
-        kernel = kernel.reshape(1, 1, scaled_kernel, scaled_kernel)
+        height, width = mask.shape[-2:]
+        short_edge = min(height, width)
 
-        radius = scaled_kernel // 2
-        source = mask.to(dtype=dtype).unsqueeze(1)
+        # Impact Pack's kernel_size is a radius: the actual kernel width is
+        # 2 * kernel_size + 1. Scale that radius relative to a 1024 px short edge.
+        scaled_radius = int(round(kernel_at_1024 * short_edge / 1024.0))
+        if scaled_radius == 0:
+            return (mask,)
+
+        kernel_size = 2 * scaled_radius + 1
+
+        # Match Impact Pack's safeguard for masks smaller than the requested kernel.
+        if short_edge <= kernel_size:
+            kernel_size = int(short_edge / 2)
+            if kernel_size % 2 == 0:
+                kernel_size += 1
+            if kernel_size < 3:
+                return (mask,)
+        radius = kernel_size // 2
+
+        work_dtype = (
+            torch.float32
+            if mask.dtype in (torch.float16, torch.bfloat16)
+            else mask.dtype
+        )
+        source = mask.to(dtype=work_dtype).unsqueeze(1)
+        kernel = self._gaussian_kernel1d(
+            kernel_size, sigma, mask.device, work_dtype
+        )
+
+        # torchvision.transforms.GaussianBlur uses separable 1D Gaussian
+        # kernels. Apply the horizontal and vertical passes independently.
+        horizontal = kernel.view(1, 1, 1, kernel_size)
+        vertical = kernel.view(1, 1, kernel_size, 1)
+
         pad_mode = "reflect"
-        if radius >= min(mask.shape[-2:]):
+        if radius >= min(height, width):
             pad_mode = "replicate"
-        padded = F.pad(source, (radius, radius, radius, radius), mode=pad_mode)
-        blurred = F.conv2d(padded, kernel)
+
+        source = F.pad(source, (radius, radius, 0, 0), mode=pad_mode)
+        source = F.conv2d(source, horizontal)
+        source = F.pad(source, (0, 0, radius, radius), mode=pad_mode)
+        blurred = F.conv2d(source, vertical)
+
         return (blurred.squeeze(1).to(dtype=mask.dtype),)
 
 
