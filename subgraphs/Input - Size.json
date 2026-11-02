@@ -51,7 +51,7 @@
       "title": "Size",
       "properties": {
         "previewExposures": [],
-        "category": "Comfy YANP/Utils"
+        "category": "YANP/Utils"
       },
       "widgets_values": [
         0,
@@ -288,18 +288,11 @@
             "type": "INT"
           }
         ],
-<<<<<<< HEAD
-        "extra": {},,
-        "category": "Comfy YANP / utils"
-      }
-    ]
-  }
-=======
         "extra": {
-          "category": "Comfy YANP/Utils"
+          "category": "YANP/Utils"
         },
         "description": "Width and height.",
-        "category": "Comfy YANP/Utils"
+        "category": "YANP/Utils"
       }
     ]
   },
@@ -310,5 +303,4 @@
   "version": 0.4,
   "config": {},
   "extra": {}
->>>>>>> dcbadd8cf0a71b10ef5cd5b270eec28aaee0f2a0
 }
