@@ -82,7 +82,7 @@
       "title": "Smart Scale (Float)",
       "properties": {
         "previewExposures": [],
-        "category": "YANP/Utils"
+        "category": "Comfy YANP/Utils"
       },
       "widgets_values": [
         "4xHFA2k.pth",
@@ -1004,9 +1004,9 @@
         ],
         "extra": {
           "pixaromaGroups": [],
-          "category": "YANP/Utils"
+          "category": "Comfy YANP/Utils"
         },
-        "category": "YANP/Utils"
+        "category": "Comfy YANP/Utils"
       }
     ]
   },
