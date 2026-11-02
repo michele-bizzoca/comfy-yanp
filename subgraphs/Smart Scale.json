@@ -67,7 +67,8 @@
         }
       ],
       "properties": {
-        "previewExposures": []
+        "previewExposures": [],
+        "category": "Comfy YANP/Utils"
       },
       "widgets_values": [
         "4xHFA2k.pth",
@@ -789,9 +790,11 @@
           }
         ],
         "extra": {
-          "pixaromaGroups": []
+          "pixaromaGroups": [],
+          "category": "Comfy YANP/Utils"
         },
-        "description": "Flexible combination of AI and traditional scaling (by a factor)."
+        "description": "Flexible combination of AI and traditional scaling (by a factor).",
+        "category": "Comfy YANP/Utils"
       }
     ]
   },
