@@ -28,9 +28,11 @@
         },
         {
           "name": "background-color",
-          "type": "INT",
+          "type": "COMBO",
           "link": null,
-          "shape": 7
+          "widget": {
+            "name": "background-color"
+          }
         }
       ],
       "outputs": [
@@ -45,6 +47,12 @@
       "properties": {
         "previewExposures": [],
         "category": "YANP/Masks"
+      },
+      "widgets_values": [
+        "white"
+      ],
+      "widgets_values_named": {
+        "background-color": "white"
       }
     }
   ],
@@ -112,7 +120,7 @@
           {
             "id": "56b9cea7-fa16-4f32-ba54-bf5999643afa",
             "name": "background-color",
-            "type": "INT",
+            "type": "COMBO",
             "linkIds": [
               8
             ],
@@ -277,7 +285,7 @@
           },
           {
             "id": 4,
-            "type": "EmptyImage",
+            "type": "yanp_background",
             "pos": [
               4200.466277314025,
               772.7438363956511
@@ -309,18 +317,9 @@
                 "link": 4
               },
               {
-                "localized_name": "batch_size",
-                "name": "batch_size",
-                "type": "INT",
-                "widget": {
-                  "name": "batch_size"
-                },
-                "link": null
-              },
-              {
                 "localized_name": "color",
                 "name": "color",
-                "type": "INT",
+                "type": "COMBO",
                 "widget": {
                   "name": "color"
                 },
@@ -329,8 +328,8 @@
             ],
             "outputs": [
               {
-                "localized_name": "IMAGE",
-                "name": "IMAGE",
+                "localized_name": "image",
+                "name": "image",
                 "type": "IMAGE",
                 "links": [
                   5
@@ -338,19 +337,17 @@
               }
             ],
             "properties": {
-              "Node name for S&R": "EmptyImage"
+              "Node name for S&R": "yanp_background"
             },
             "widgets_values": [
               512,
               512,
-              1,
-              16777215
+              "white"
             ],
             "widgets_values_named": {
               "width": 512,
               "height": 512,
-              "batch_size": 1,
-              "color": 16777215
+              "color": "white"
             }
           }
         ],
@@ -417,8 +414,8 @@
             "origin_id": -10,
             "origin_slot": 2,
             "target_id": 4,
-            "target_slot": 3,
-            "type": "INT"
+            "target_slot": 2,
+            "type": "COMBO"
           }
         ],
         "extra": {

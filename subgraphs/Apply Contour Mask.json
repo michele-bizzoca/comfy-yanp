@@ -27,13 +27,12 @@
           "link": null
         },
         {
-          "name": "contour-color",
-          "type": "INT",
+          "name": "background-color",
+          "type": "COMBO",
           "link": null,
           "widget": {
-            "name": "contour-color"
-          },
-          "label": "Background Color"
+            "name": "background-color"
+          }
         }
       ],
       "outputs": [
@@ -50,10 +49,10 @@
         "category": "YANP/Masks"
       },
       "widgets_values": [
-        0
+        "black"
       ],
       "widgets_values_named": {
-        "contour-color": 0
+        "background-color": "black"
       }
     }
   ],
@@ -120,16 +119,15 @@
           },
           {
             "id": "f06286ad-d5b6-48fa-bdc6-0fcb00eca2d9",
-            "name": "contour-color",
-            "type": "INT",
+            "name": "background-color",
+            "type": "COMBO",
             "linkIds": [
               8
             ],
             "pos": [
               3832,
               991
-            ],
-            "label": "Background Color"
+            ]
           }
         ],
         "outputs": [
@@ -287,7 +285,7 @@
           },
           {
             "id": 4,
-            "type": "EmptyImage",
+            "type": "yanp_background",
             "pos": [
               4200.466277314025,
               772.7438363956511
@@ -319,18 +317,9 @@
                 "link": 4
               },
               {
-                "localized_name": "batch_size",
-                "name": "batch_size",
-                "type": "INT",
-                "widget": {
-                  "name": "batch_size"
-                },
-                "link": null
-              },
-              {
                 "localized_name": "color",
                 "name": "color",
-                "type": "INT",
+                "type": "COMBO",
                 "widget": {
                   "name": "color"
                 },
@@ -339,8 +328,8 @@
             ],
             "outputs": [
               {
-                "localized_name": "IMAGE",
-                "name": "IMAGE",
+                "localized_name": "image",
+                "name": "image",
                 "type": "IMAGE",
                 "links": [
                   5
@@ -348,19 +337,17 @@
               }
             ],
             "properties": {
-              "Node name for S&R": "EmptyImage"
+              "Node name for S&R": "yanp_background"
             },
             "widgets_values": [
               512,
               512,
-              1,
-              0
+              "black"
             ],
             "widgets_values_named": {
               "width": 512,
               "height": 512,
-              "batch_size": 1,
-              "color": 0
+              "color": "black"
             }
           }
         ],
@@ -427,8 +414,8 @@
             "origin_id": -10,
             "origin_slot": 2,
             "target_id": 4,
-            "target_slot": 3,
-            "type": "INT"
+            "target_slot": 2,
+            "type": "COMBO"
           }
         ],
         "extra": {
