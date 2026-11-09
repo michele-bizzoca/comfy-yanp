@@ -27,11 +27,11 @@
           "link": null
         },
         {
-          "name": "background-color",
+          "name": "contour-color",
           "type": "COMBO",
           "link": null,
           "widget": {
-            "name": "background-color"
+            "name": "contour-color"
           }
         }
       ],
@@ -52,7 +52,7 @@
         "black"
       ],
       "widgets_values_named": {
-        "background-color": "black"
+        "contour-color": "black"
       }
     }
   ],
@@ -119,7 +119,7 @@
           },
           {
             "id": "f06286ad-d5b6-48fa-bdc6-0fcb00eca2d9",
-            "name": "background-color",
+            "name": "contour-color",
             "type": "COMBO",
             "linkIds": [
               8
